@@ -1,240 +1,258 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
+import { AnimatePresence, motion } from 'framer-motion'
+import { useNavigate, useSearchParams } from 'react-router-dom'
+import Avatar from '../components/Avatar.jsx'
 import Header from '../components/Header.jsx'
-import FormInput from '../components/FormInput.jsx'
-import { EditIcon, MapPinIcon, PhoneIcon, TagIcon, UserIcon } from '../components/Icons.jsx'
-import { createProfile, errorMessage, getProfile, updateProfile } from '../api.js'
-import { ROLE_LABELS } from '../utils.js'
-
-const STORAGE_KEY = 'agro_auksion_profile_id'
-
-const ROLE_OPTIONS = [
-  { value: 'dehqon', label: 'Dehqon' },
-  { value: 'sotib_oluvchi', label: 'Sotib oluvchi' },
-]
-
-const EMPTY = { name: '', role: 'dehqon', phone: '', address: '' }
+import ListingCard from '../components/ListingCard.jsx'
+import EmptyState from '../components/EmptyState.jsx'
+import AuthRequired from '../components/AuthRequired.jsx'
+import PageShell from '../components/PageShell.jsx'
+import Toast from '../components/Toast.jsx'
+import { ListingSkeleton } from '../components/Skeletons.jsx'
+import { CartIcon, GavelIcon, SettingsIcon } from '../components/Icons.jsx'
+import {
+  deleteAuction,
+  deleteRequest,
+  errorMessage,
+  getAuctions,
+  getRequests,
+} from '../api.js'
+import { useT } from '../i18n/index.jsx'
+import { listContainer, spring, tapSmall } from '../motion.js'
+import useCurrentUser from '../useCurrentUser.js'
+import { ROLE_KEYS } from '../utils.js'
 
 export default function ProfilePage() {
-  const [profile, setProfile] = useState(null)
-  const [editing, setEditing] = useState(false)
-  const [form, setForm] = useState(EMPTY)
-  const [errors, setErrors] = useState({})
+  const navigate = useNavigate()
+  const t = useT()
+  const { user, loading, error } = useCurrentUser()
+  const [searchParams, setSearchParams] = useSearchParams()
+
+  const [tab, setTab] = useState('auctions')
+  const [auctions, setAuctions] = useState(null)
+  const [requests, setRequests] = useState(null)
   const [alert, setAlert] = useState('')
   const [toast, setToast] = useState('')
-  const [loading, setLoading] = useState(true)
-  const [saving, setSaving] = useState(false)
 
+  // Google xatolik bilan qaytargan bo'lsa (?auth_error=...) — ko'rsatamiz.
   useEffect(() => {
-    const savedId = localStorage.getItem(STORAGE_KEY)
-    if (!savedId) {
-      setLoading(false)
-      return
-    }
+    const authError = searchParams.get('auth_error')
+    if (!authError) return
+    setAlert(authError)
+    searchParams.delete('auth_error')
+    setSearchParams(searchParams, { replace: true })
+  }, [searchParams, setSearchParams])
 
-    let active = true
-    getProfile(savedId)
-      .then((data) => {
-        if (!active) return
-        setProfile(data)
-        setForm({
-          name: data.name,
-          role: data.role,
-          phone: data.phone,
-          address: data.address || '',
-        })
-      })
-      .catch((err) => {
-        if (!active) return
-        if (err?.response?.status === 404) {
-          // Profil serverda o'chirilgan — localStorage'ni tozalaymiz.
-          localStorage.removeItem(STORAGE_KEY)
-        } else {
-          setAlert(errorMessage(err))
-        }
-      })
-      .finally(() => active && setLoading(false))
-
-    return () => {
-      active = false
-    }
-  }, [])
-
-  useEffect(() => {
-    if (!toast) return undefined
-    const timer = setTimeout(() => setToast(''), 2200)
-    return () => clearTimeout(timer)
-  }, [toast])
-
-  const handleChange = (e) => {
-    const { name, value } = e.target
-    setForm((prev) => ({ ...prev, [name]: value }))
-    setErrors((prev) => ({ ...prev, [name]: '' }))
-  }
-
-  const validate = () => {
-    const next = {}
-    if (!form.name.trim()) next.name = 'Ismni kiriting'
-    if (!form.phone.trim()) next.phone = 'Telefon raqamini kiriting'
-    setErrors(next)
-    return Object.keys(next).length === 0
-  }
-
-  const handleSubmit = async (e) => {
-    e.preventDefault()
-    setAlert('')
-    if (!validate()) return
-
-    const payload = {
-      name: form.name.trim(),
-      role: form.role,
-      phone: form.phone.trim(),
-      address: form.address.trim() || null,
-    }
-
-    setSaving(true)
+  const loadListings = useCallback(async () => {
+    if (!user) return
     try {
-      const saved = profile
-        ? await updateProfile(profile.id, payload)
-        : await createProfile(payload)
-      localStorage.setItem(STORAGE_KEY, saved.id)
-      setProfile(saved)
-      setEditing(false)
-      setToast('Profil saqlandi')
+      const [a, r] = await Promise.all([
+        getAuctions({ owner_id: user.id }),
+        getRequests({ owner_id: user.id }),
+      ])
+      setAuctions(a)
+      setRequests(r)
     } catch (err) {
-      setAlert(errorMessage(err))
-    } finally {
-      setSaving(false)
+      setAlert(errorMessage(err, t))
+      setAuctions([])
+      setRequests([])
+    }
+  }, [user, t])
+
+  useEffect(() => {
+    loadListings()
+  }, [loadListings])
+
+  const remove = async (item, kind) => {
+    if (!window.confirm(t('common.confirmDelete'))) return
+    try {
+      if (kind === 'auction') {
+        await deleteAuction(item.id)
+        setAuctions((prev) => prev.filter((x) => x.id !== item.id))
+      } else {
+        await deleteRequest(item.id)
+        setRequests((prev) => prev.filter((x) => x.id !== item.id))
+      }
+      setToast(t('listing.deleted'))
+    } catch (err) {
+      setAlert(errorMessage(err, t))
     }
   }
 
-  const showForm = !profile || editing
+  const shownAlert = alert || error
+
+  /* --------------------------- Kirmagan holat --------------------------- */
+
+  if (!loading && !user) {
+    return (
+      <PageShell>
+        <Header title={t('profile.title')} subtitle={t('profile.signInSubtitle')} />
+        <main className="page">
+          {shownAlert && <div className="alert">{shownAlert}</div>}
+          <AuthRequired
+            icon="leaf"
+            title={t('auth.welcome')}
+            text={t('auth.profileIntro')}
+            note={t('auth.browseFree')}
+          />
+        </main>
+      </PageShell>
+    )
+  }
+
+  const list = tab === 'auctions' ? auctions : requests
+  const kind = tab === 'auctions' ? 'auction' : 'request'
 
   return (
-    <>
+    <PageShell>
       <Header
-        title="Profil"
-        subtitle={showForm ? "Ma'lumotlaringizni kiriting" : "Shaxsiy ma'lumotlaringiz"}
+        title={t('profile.title')}
+        subtitle={t('profile.subtitle')}
+        actions={
+          <motion.button
+            type="button"
+            className="header-btn"
+            whileTap={tapSmall}
+            onClick={() => navigate('/sozlamalar')}
+            aria-label={t('settings.title')}
+          >
+            <SettingsIcon size={20} />
+          </motion.button>
+        }
       />
 
       <main className="page">
-        {alert && <div className="alert">{alert}</div>}
+        {shownAlert && <div className="alert">{shownAlert}</div>}
 
-        {loading && <div className="skeleton" style={{ height: 220 }} />}
+        {loading && <div className="skeleton" style={{ height: 210 }} />}
 
-        {!loading && showForm && (
-          <form onSubmit={handleSubmit} noValidate>
-            <FormInput
-              label="Ism"
-              name="name"
-              value={form.name}
-              onChange={handleChange}
-              placeholder="Ismingiz va familiyangiz"
-              required
-              error={errors.name}
-            />
-            <FormInput
-              label="Rol"
-              name="role"
-              value={form.role}
-              onChange={handleChange}
-              options={ROLE_OPTIONS}
-            />
-            <FormInput
-              label="Telefon"
-              name="phone"
-              type="tel"
-              value={form.phone}
-              onChange={handleChange}
-              placeholder="+998 90 123 45 67"
-              required
-              error={errors.phone}
-            />
-            <FormInput
-              label="Manzil"
-              name="address"
-              value={form.address}
-              onChange={handleChange}
-              placeholder="Masalan: Farg'ona, Quva tumani"
-              error={errors.address}
-            />
-
-            <button type="submit" className="btn-primary" disabled={saving}>
-              {saving ? 'Saqlanmoqda...' : 'Profilni saqlash'}
-            </button>
-
-            {profile && (
-              <button
-                type="button"
-                className="btn-secondary"
-                style={{ marginTop: 10 }}
-                onClick={() => {
-                  setEditing(false)
-                  setErrors({})
-                  setForm({
-                    name: profile.name,
-                    role: profile.role,
-                    phone: profile.phone,
-                    address: profile.address || '',
-                  })
-                }}
-              >
-                Bekor qilish
-              </button>
-            )}
-          </form>
-        )}
-
-        {!loading && !showForm && (
+        {!loading && user && (
           <>
-            <div className="profile-head">
-              <div className="avatar">{profile.name.trim().charAt(0).toUpperCase()}</div>
-              <h2>{profile.name}</h2>
-              <span className={`badge${profile.role === 'dehqon' ? '' : ' badge-orange'}`}>
-                {ROLE_LABELS[profile.role] || profile.role}
+            {/* ----------------------- A. Foydalanuvchi ---------------------- */}
+            <motion.div
+              className="profile-head"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.26, ease: [0.22, 1, 0.36, 1] }}
+            >
+              <motion.div
+                initial={{ scale: 0.8, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                transition={spring}
+                style={{ display: 'flex', justifyContent: 'center' }}
+              >
+                <Avatar name={user.name} src={user.avatar_url} size={78} />
+              </motion.div>
+
+              <h2>{user.name}</h2>
+              {user.email && <div className="profile-email">{user.email}</div>}
+
+              <span className={`badge${user.role === 'dehqon' ? '' : ' badge-orange'}`}>
+                {t(ROLE_KEYS[user.role] || 'role.dehqon')}
               </span>
+
+              <div className="counts">
+                <span>{t('auctions.count', { count: auctions?.length ?? 0 })}</span>
+                <span>·</span>
+                <span>{t('requests.count', { count: requests?.length ?? 0 })}</span>
+              </div>
+
+              <motion.button
+                type="button"
+                className="btn btn-secondary"
+                style={{ marginTop: 'var(--sp-4)' }}
+                whileTap={tapSmall}
+                onClick={() => navigate('/sozlamalar')}
+              >
+                {t('profile.edit')}
+              </motion.button>
+            </motion.div>
+
+            {!user.phone && <div className="alert alert-warn">{t('profile.noPhone')}</div>}
+
+            {/* ------------------------ B. E'lonlarim ------------------------ */}
+            <h2 className="section-title">{t('profile.myListings')}</h2>
+
+            <div className="segment" role="tablist">
+              {[
+                { id: 'auctions', label: t('profile.myAuctions') },
+                { id: 'requests', label: t('profile.myRequests') },
+              ].map((opt) => (
+                <button
+                  key={opt.id}
+                  type="button"
+                  role="tab"
+                  aria-selected={tab === opt.id}
+                  className={`segment-btn${tab === opt.id ? ' active' : ''}`}
+                  onClick={() => setTab(opt.id)}
+                >
+                  {tab === opt.id && (
+                    <motion.span
+                      layoutId="segment-ind"
+                      className="segment-ind"
+                      transition={spring}
+                    />
+                  )}
+                  <span>{opt.label}</span>
+                </button>
+              ))}
             </div>
 
-            <div className="info-list">
-              <div className="info-row">
-                <PhoneIcon size={18} />
-                <div>
-                  <div className="k">Telefon</div>
-                  <div className="v">{profile.phone}</div>
-                </div>
-              </div>
-              <div className="info-row">
-                <MapPinIcon size={18} />
-                <div>
-                  <div className="k">Manzil</div>
-                  <div className="v">{profile.address || "Ko'rsatilmagan"}</div>
-                </div>
-              </div>
-              <div className="info-row">
-                <TagIcon size={18} />
-                <div>
-                  <div className="k">Rol</div>
-                  <div className="v">{ROLE_LABELS[profile.role] || profile.role}</div>
-                </div>
-              </div>
-              <div className="info-row">
-                <UserIcon size={18} />
-                <div>
-                  <div className="k">Profil ID</div>
-                  <div className="v" style={{ fontSize: 12, wordBreak: 'break-all' }}>
-                    {profile.id}
-                  </div>
-                </div>
-              </div>
-            </div>
+            <AnimatePresence mode="wait" initial={false}>
+              <motion.div
+                key={tab}
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -6 }}
+                transition={{ duration: 0.18 }}
+              >
+                {list === null && <ListingSkeleton count={2} />}
 
-            <button type="button" className="btn-primary" onClick={() => setEditing(true)}>
-              <EditIcon size={17} /> Tahrirlash
-            </button>
+                {list !== null && list.length === 0 && (
+                  <EmptyState
+                    icon={tab === 'auctions' ? GavelIcon : CartIcon}
+                    title={t(tab === 'auctions' ? 'profile.noAuctions' : 'profile.noRequests')}
+                    action={
+                      <motion.button
+                        type="button"
+                        className="btn btn-primary"
+                        whileTap={tapSmall}
+                        onClick={() =>
+                          navigate(tab === 'auctions' ? '/auksion/yangi' : '/sorovlar/yangi')
+                        }
+                      >
+                        {t(tab === 'auctions' ? 'auctions.new' : 'requests.new')}
+                      </motion.button>
+                    }
+                  />
+                )}
+
+                {list !== null && list.length > 0 && (
+                  <motion.div variants={listContainer} initial="initial" animate="animate">
+                    {list.map((item) => (
+                      <ListingCard
+                        key={item.id}
+                        item={item}
+                        kind={kind}
+                        onEdit={(it) =>
+                          navigate(
+                            kind === 'auction'
+                              ? `/auksion/${it.id}/tahrir`
+                              : `/sorovlar/${it.id}/tahrir`,
+                          )
+                        }
+                        onDelete={(it) => remove(it, kind)}
+                      />
+                    ))}
+                  </motion.div>
+                )}
+              </motion.div>
+            </AnimatePresence>
           </>
         )}
       </main>
 
-      {toast && <div className="toast">{toast}</div>}
-    </>
+      <Toast message={toast} onDone={() => setToast('')} />
+    </PageShell>
   )
 }
