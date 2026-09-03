@@ -22,16 +22,22 @@ import { spring } from '../motion.js'
 import { useTheme } from '../theme.jsx'
 import { formatNumber } from '../utils.js'
 
-/** Mavzuga mos diagramma ranglari (recharts CSS o'zgaruvchilarini o'qiy olmaydi). */
+/**
+ * Mavzuga mos diagramma ranglari. Recharts CSS o'zgaruvchilarini o'qiy olmaydi,
+ * shuning uchun bu yerdagi qiymatlar index.css dagi tokenlar bilan bir xil:
+ *   auction — asosiy jigarrang, request — zaytun yashil.
+ */
 function chartPalette(isDark) {
   return {
-    auction: isDark ? '#35c08a' : '#0f7b4f',
-    request: isDark ? '#f0834a' : '#c2410c',
-    grid: isDark ? '#24352c' : '#eeebe2',
-    axis: isDark ? '#a2b5aa' : '#5d6d62',
-    label: isDark ? '#e9f1eb' : '#16211c',
-    surface: isDark ? '#141f1a' : '#ffffff',
-    border: isDark ? '#24352c' : '#e7e2d4',
+    auction: isDark ? '#c4a68f' : '#a98b76',
+    request: isDark ? '#c8ce9f' : '#8a9059',
+    grid: isDark ? '#3a2e26' : '#e8d9c5',
+    axis: isDark ? '#b8a898' : '#7a6555',
+    label: isDark ? '#f3e4c9' : '#3d2e22',
+    surface: isDark ? '#2a2220' : '#ffffff',
+    border: isDark ? '#3a2e26' : '#e8d9c5',
+    cursor: isDark ? 'rgba(243,228,201,0.08)' : 'rgba(169,139,118,0.14)',
+    shadow: isDark ? '0 8px 24px rgba(0,0,0,0.5)' : '0 8px 24px rgba(61,46,34,0.14)',
   }
 }
 
@@ -45,7 +51,7 @@ function ChartTooltip({ active, payload, colors, t }) {
         border: `1px solid ${colors.border}`,
         borderRadius: 12,
         padding: '9px 12px',
-        boxShadow: '0 8px 24px rgba(0,0,0,0.16)',
+        boxShadow: colors.shadow,
         fontSize: 13,
         color: colors.label,
       }}
@@ -92,7 +98,7 @@ function TopChart({ title, data, color, colors, loading, t }) {
             />
             <Tooltip
               content={<ChartTooltip colors={colors} t={t} />}
-              cursor={{ fill: 'rgba(125,132,116,0.12)' }}
+              cursor={{ fill: colors.cursor }}
             />
             <Bar dataKey="total_quantity" radius={[0, 7, 7, 0]} barSize={20} animationDuration={600}>
               {data.map((entry) => (
@@ -151,7 +157,7 @@ export default function StatsPage() {
   const isEmpty = !loading && !alert && topAuctions.length === 0 && topRequests.length === 0
 
   return (
-    <PageShell>
+    <PageShell width="wide">
       <Header title={t('stats.title')} subtitle={t('stats.subtitle')} />
 
       <PullToRefresh onRefresh={load}>
@@ -205,7 +211,8 @@ export default function StatsPage() {
           {isEmpty ? (
             <EmptyState icon={ChartIcon} title={t('stats.empty')} text={t('stats.emptyHint')} />
           ) : (
-            <>
+            /* Desktopda diagrammalar ikki ustunda yonma-yon. */
+            <div className="chart-grid">
               {showAuctions && (
                 <TopChart
                   title={t('stats.topAuctions')}
@@ -227,7 +234,7 @@ export default function StatsPage() {
                   t={t}
                 />
               )}
-            </>
+            </div>
           )}
         </main>
       </PullToRefresh>

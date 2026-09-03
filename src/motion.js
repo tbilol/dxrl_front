@@ -4,14 +4,14 @@
 
 export const spring = { type: 'spring', stiffness: 380, damping: 32, mass: 0.8 }
 export const softSpring = { type: 'spring', stiffness: 260, damping: 28 }
-export const enter = { duration: 0.26, ease: [0.22, 1, 0.36, 1] }
-export const exit = { duration: 0.16, ease: [0.4, 0, 1, 1] }
+export const enter = { duration: 0.3, ease: [0.22, 1, 0.36, 1] }
+export const exit = { duration: 0.18, ease: [0.4, 0, 1, 1] }
 
-/** Tab sahifalari — yumshoq ko'tarilib paydo bo'ladi. */
+/** Tab sahifalari — yumshoq ko'tarilib paydo bo'ladi (siljish + so'nish). */
 export const fadePage = {
-  initial: { opacity: 0, y: 8 },
+  initial: { opacity: 0, y: 10 },
   animate: { opacity: 1, y: 0, transition: enter },
-  exit: { opacity: 0, y: -6, transition: exit },
+  exit: { opacity: 0, y: -8, transition: exit },
 }
 
 /** Ichki sahifalar (detal, chat) — o'ngdan suriladi. */

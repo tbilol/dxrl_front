@@ -1,11 +1,13 @@
 /** Yuklanish paytidagi skelet holatlar — CLS bo'lmasligi uchun
     haqiqiy kontent bilan bir xil balandlikda. */
 
+/* Fragment qaytaradi — shunda kartalar `.card-grid` ichida to'g'ridan-to'g'ri
+   to'r elementlari bo'ladi (o'ralgan div to'rni buzmaydi). */
 export function ListingSkeleton({ count = 3 }) {
   return (
-    <div aria-hidden="true">
+    <>
       {Array.from({ length: count }).map((_, i) => (
-        <div key={i} className="card" style={{ opacity: 1 - i * 0.18 }}>
+        <div key={i} className="card" aria-hidden="true" style={{ opacity: 1 - i * 0.18 }}>
           <div style={{ display: 'flex', gap: 12, marginBottom: 14 }}>
             <div className="skeleton" style={{ width: 110, height: 32, borderRadius: 999 }} />
             <div
@@ -17,7 +19,7 @@ export function ListingSkeleton({ count = 3 }) {
           <div className="skeleton skeleton-line" style={{ width: '48%', marginBottom: 0 }} />
         </div>
       ))}
-    </div>
+    </>
   )
 }
 

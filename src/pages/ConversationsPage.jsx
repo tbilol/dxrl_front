@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
-import { motion } from 'framer-motion'
 import { useNavigate } from 'react-router-dom'
-import Avatar from '../components/Avatar.jsx'
+import ConversationList from '../components/ConversationList.jsx'
 import Header from '../components/Header.jsx'
 import EmptyState from '../components/EmptyState.jsx'
 import AuthRequired from '../components/AuthRequired.jsx'
@@ -11,17 +10,17 @@ import { ConversationSkeleton } from '../components/Skeletons.jsx'
 import { MessageIcon } from '../components/Icons.jsx'
 import { errorMessage, getConversations } from '../api.js'
 import { useLanguage } from '../i18n/index.jsx'
-import { listContainer, listItem } from '../motion.js'
 import useCurrentUser from '../useCurrentUser.js'
-import { formatChatTime } from '../utils.js'
+import { useIsDesktop } from '../useMediaQuery.js'
 
 const POLL_MS = 8000
 
-/** Suhbatlar ro'yxati (Instagram DM uslubida). */
+/** Suhbatlar ro'yxati. Desktopda Telegram uslubidagi ikki panelli ko'rinish. */
 export default function ConversationsPage() {
   const navigate = useNavigate()
-  const { lang, t } = useLanguage()
+  const { t } = useLanguage()
   const { user, loading: userLoading } = useCurrentUser()
+  const isDesktop = useIsDesktop()
 
   const [items, setItems] = useState(null)
   const [alert, setAlert] = useState('')
@@ -45,9 +44,11 @@ export default function ConversationsPage() {
     return () => clearInterval(timer)
   }, [user, load])
 
+  /* ---------------------------- Kirmagan holat ---------------------------- */
+
   if (!userLoading && !user) {
     return (
-      <PageShell>
+      <PageShell width="mid">
         <Header title={t('messages.title')} subtitle={t('messages.subtitle')} />
         <main className="page">
           <AuthRequired text={t('auth.needMessages')} />
@@ -56,8 +57,61 @@ export default function ConversationsPage() {
     )
   }
 
+  const loading = userLoading || items === null
+  const empty = items !== null && items.length === 0 && !alert
+
+  const list = (
+    <>
+      {loading && <ConversationSkeleton />}
+
+      {empty && (
+        <EmptyState icon={MessageIcon} title={t('messages.empty')} text={t('messages.emptyHint')} />
+      )}
+
+      {items !== null && items.length > 0 && (
+        <ConversationList
+          items={items}
+          currentUserId={user?.id}
+          onSelect={(conv) => navigate(`/xabarlar/${conv.id}`)}
+        />
+      )}
+    </>
+  )
+
+  /* ------------------- Desktop: ro'yxat + yozishma sohasi ------------------ */
+
+  if (isDesktop) {
+    return (
+      <PageShell width="full" className="messages-shell">
+        <aside className="messages-aside" aria-label={t('messages.title')}>
+          <div className="messages-aside-head">{t('messages.title')}</div>
+          <div className="messages-aside-list">
+            {alert && (
+              <div className="alert" style={{ margin: 'var(--sp-4)' }}>
+                {alert}
+              </div>
+            )}
+            {list}
+          </div>
+        </aside>
+
+        <div className="messages-main">
+          <div className="chat-placeholder">
+            <EmptyState
+              icon={MessageIcon}
+              title={t('messages.title')}
+              text={t('messages.emptyHint')}
+            />
+          </div>
+        </div>
+      </PageShell>
+    )
+  }
+
+  /* ------------------------ Mobil / planshet ko'rinishi -------------------- */
+
   return (
-    <PageShell>
+    <PageShell width="mid">
       <Header title={t('messages.title')} subtitle={t('messages.subtitle')} />
 
       <PullToRefresh onRefresh={load}>
@@ -67,66 +121,7 @@ export default function ConversationsPage() {
               {alert}
             </div>
           )}
-
-          {(userLoading || items === null) && <ConversationSkeleton />}
-
-          {items !== null && items.length === 0 && !alert && (
-            <EmptyState
-              icon={MessageIcon}
-              title={t('messages.empty')}
-              text={t('messages.emptyHint')}
-            />
-          )}
-
-          {items !== null && items.length > 0 && (
-            <motion.div variants={listContainer} initial="initial" animate="animate">
-              {items.map((conv) => {
-                const unread = conv.unread_count > 0
-                const mine = conv.last_message_sender_id === user?.id
-
-                return (
-                  <motion.button
-                    key={conv.id}
-                    type="button"
-                    className="conv-row"
-                    variants={listItem}
-                    whileTap={{ opacity: 0.65 }}
-                    onClick={() => navigate(`/xabarlar/${conv.id}`)}
-                  >
-                    <Avatar
-                      name={conv.other_user.name}
-                      src={conv.other_user.avatar_url}
-                      size={50}
-                    />
-
-                    <div className="conv-body">
-                      <div className="conv-name">{conv.other_user.name}</div>
-                      <div className={`conv-preview${unread ? ' unread' : ''}`}>
-                        {conv.last_message
-                          ? `${mine ? `${t('messages.you')}: ` : ''}${conv.last_message}`
-                          : t('messages.startHint')}
-                      </div>
-                    </div>
-
-                    <div className="conv-side">
-                      <span className="conv-time">
-                        {formatChatTime(conv.last_message_at, lang, t)}
-                      </span>
-                      {unread && (
-                        <motion.span
-                          className="conv-dot"
-                          initial={{ scale: 0 }}
-                          animate={{ scale: 1 }}
-                        >
-                          {conv.unread_count > 99 ? '99+' : conv.unread_count}
-                        </motion.span>
-                      )}
-                    </div>
-                  </motion.button>
-                )
-              })}
-            </motion.div>
-          )}
+          {list}
         </main>
       </PullToRefresh>
     </PageShell>

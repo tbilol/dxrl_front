@@ -22,6 +22,7 @@ import { listContainer, spring, tapSmall } from '../motion.js'
 import useCurrentUser from '../useCurrentUser.js'
 import { ROLE_KEYS } from '../utils.js'
 
+/** Profil. Desktopda: chapda foydalanuvchi kartasi, o'ngda e'lonlari. */
 export default function ProfilePage() {
   const navigate = useNavigate()
   const t = useT()
@@ -85,7 +86,7 @@ export default function ProfilePage() {
 
   if (!loading && !user) {
     return (
-      <PageShell>
+      <PageShell width="mid">
         <Header title={t('profile.title')} subtitle={t('profile.signInSubtitle')} />
         <main className="page">
           {shownAlert && <div className="alert">{shownAlert}</div>}
@@ -104,7 +105,7 @@ export default function ProfilePage() {
   const kind = tab === 'auctions' ? 'auction' : 'request'
 
   return (
-    <PageShell>
+    <PageShell width="wide">
       <Header
         title={t('profile.title')}
         subtitle={t('profile.subtitle')}
@@ -127,128 +128,146 @@ export default function ProfilePage() {
         {loading && <div className="skeleton" style={{ height: 210 }} />}
 
         {!loading && user && (
-          <>
-            {/* ----------------------- A. Foydalanuvchi ---------------------- */}
-            <motion.div
-              className="profile-head"
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.26, ease: [0.22, 1, 0.36, 1] }}
-            >
+          <div className="profile-grid">
+            {/* --------------------- Chap: foydalanuvchi --------------------- */}
+            <div className="profile-aside">
               <motion.div
-                initial={{ scale: 0.8, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                transition={spring}
-                style={{ display: 'flex', justifyContent: 'center' }}
+                className="profile-head"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.26, ease: [0.22, 1, 0.36, 1] }}
               >
-                <Avatar name={user.name} src={user.avatar_url} size={78} />
+                <motion.div
+                  initial={{ scale: 0.8, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  transition={spring}
+                  style={{ display: 'flex', justifyContent: 'center' }}
+                >
+                  <Avatar
+                    name={user.name}
+                    src={user.avatar_url}
+                    size={78}
+                    className="avatar-ring"
+                  />
+                </motion.div>
+
+                <h2>{user.name}</h2>
+                {user.email && <div className="profile-email">{user.email}</div>}
+
+                <span className={`badge${user.role === 'dehqon' ? '' : ' badge-orange'}`}>
+                  {t(ROLE_KEYS[user.role] || 'role.dehqon')}
+                </span>
+
+                <div className="counts">
+                  <span>{t('auctions.count', { count: auctions?.length ?? 0 })}</span>
+                  <span>·</span>
+                  <span>{t('requests.count', { count: requests?.length ?? 0 })}</span>
+                </div>
+
+                <motion.button
+                  type="button"
+                  className="btn btn-secondary"
+                  style={{ marginTop: 'var(--sp-4)' }}
+                  whileTap={tapSmall}
+                  onClick={() => navigate('/sozlamalar')}
+                >
+                  {t('profile.edit')}
+                </motion.button>
               </motion.div>
 
-              <h2>{user.name}</h2>
-              {user.email && <div className="profile-email">{user.email}</div>}
-
-              <span className={`badge${user.role === 'dehqon' ? '' : ' badge-orange'}`}>
-                {t(ROLE_KEYS[user.role] || 'role.dehqon')}
-              </span>
-
-              <div className="counts">
-                <span>{t('auctions.count', { count: auctions?.length ?? 0 })}</span>
-                <span>·</span>
-                <span>{t('requests.count', { count: requests?.length ?? 0 })}</span>
-              </div>
-
-              <motion.button
-                type="button"
-                className="btn btn-secondary"
-                style={{ marginTop: 'var(--sp-4)' }}
-                whileTap={tapSmall}
-                onClick={() => navigate('/sozlamalar')}
-              >
-                {t('profile.edit')}
-              </motion.button>
-            </motion.div>
-
-            {!user.phone && <div className="alert alert-warn">{t('profile.noPhone')}</div>}
-
-            {/* ------------------------ B. E'lonlarim ------------------------ */}
-            <h2 className="section-title">{t('profile.myListings')}</h2>
-
-            <div className="segment" role="tablist">
-              {[
-                { id: 'auctions', label: t('profile.myAuctions') },
-                { id: 'requests', label: t('profile.myRequests') },
-              ].map((opt) => (
-                <button
-                  key={opt.id}
-                  type="button"
-                  role="tab"
-                  aria-selected={tab === opt.id}
-                  className={`segment-btn${tab === opt.id ? ' active' : ''}`}
-                  onClick={() => setTab(opt.id)}
-                >
-                  {tab === opt.id && (
-                    <motion.span
-                      layoutId="segment-ind"
-                      className="segment-ind"
-                      transition={spring}
-                    />
-                  )}
-                  <span>{opt.label}</span>
-                </button>
-              ))}
+              {!user.phone && <div className="alert alert-warn">{t('profile.noPhone')}</div>}
             </div>
 
-            <AnimatePresence mode="wait" initial={false}>
-              <motion.div
-                key={tab}
-                initial={{ opacity: 0, y: 8 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -6 }}
-                transition={{ duration: 0.18 }}
-              >
-                {list === null && <ListingSkeleton count={2} />}
+            {/* ---------------------- O'ng: e'lonlarim ----------------------- */}
+            <div>
+              <h2 className="section-title">{t('profile.myListings')}</h2>
 
-                {list !== null && list.length === 0 && (
-                  <EmptyState
-                    icon={tab === 'auctions' ? GavelIcon : CartIcon}
-                    title={t(tab === 'auctions' ? 'profile.noAuctions' : 'profile.noRequests')}
-                    action={
-                      <motion.button
-                        type="button"
-                        className="btn btn-primary"
-                        whileTap={tapSmall}
-                        onClick={() =>
-                          navigate(tab === 'auctions' ? '/auksion/yangi' : '/sorovlar/yangi')
-                        }
-                      >
-                        {t(tab === 'auctions' ? 'auctions.new' : 'requests.new')}
-                      </motion.button>
-                    }
-                  />
-                )}
-
-                {list !== null && list.length > 0 && (
-                  <motion.div variants={listContainer} initial="initial" animate="animate">
-                    {list.map((item) => (
-                      <ListingCard
-                        key={item.id}
-                        item={item}
-                        kind={kind}
-                        onEdit={(it) =>
-                          navigate(
-                            kind === 'auction'
-                              ? `/auksion/${it.id}/tahrir`
-                              : `/sorovlar/${it.id}/tahrir`,
-                          )
-                        }
-                        onDelete={(it) => remove(it, kind)}
+              <div className="segment" role="tablist">
+                {[
+                  { id: 'auctions', label: t('profile.myAuctions') },
+                  { id: 'requests', label: t('profile.myRequests') },
+                ].map((opt) => (
+                  <button
+                    key={opt.id}
+                    type="button"
+                    role="tab"
+                    aria-selected={tab === opt.id}
+                    className={`segment-btn${tab === opt.id ? ' active' : ''}`}
+                    onClick={() => setTab(opt.id)}
+                  >
+                    {tab === opt.id && (
+                      <motion.span
+                        layoutId="segment-ind"
+                        className="segment-ind"
+                        transition={spring}
                       />
-                    ))}
-                  </motion.div>
-                )}
-              </motion.div>
-            </AnimatePresence>
-          </>
+                    )}
+                    <span>{opt.label}</span>
+                  </button>
+                ))}
+              </div>
+
+              <AnimatePresence mode="wait" initial={false}>
+                <motion.div
+                  key={tab}
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -6 }}
+                  transition={{ duration: 0.18 }}
+                >
+                  {list === null && (
+                    <div className="card-grid">
+                      <ListingSkeleton count={2} />
+                    </div>
+                  )}
+
+                  {list !== null && list.length === 0 && (
+                    <EmptyState
+                      icon={tab === 'auctions' ? GavelIcon : CartIcon}
+                      title={t(tab === 'auctions' ? 'profile.noAuctions' : 'profile.noRequests')}
+                      action={
+                        <motion.button
+                          type="button"
+                          className="btn btn-primary"
+                          whileTap={tapSmall}
+                          onClick={() =>
+                            navigate(tab === 'auctions' ? '/auksion/yangi' : '/sorovlar/yangi')
+                          }
+                        >
+                          {t(tab === 'auctions' ? 'auctions.new' : 'requests.new')}
+                        </motion.button>
+                      }
+                    />
+                  )}
+
+                  {list !== null && list.length > 0 && (
+                    <motion.div
+                      className="card-grid"
+                      variants={listContainer}
+                      initial="initial"
+                      animate="animate"
+                    >
+                      {list.map((item) => (
+                        <ListingCard
+                          key={item.id}
+                          item={item}
+                          kind={kind}
+                          onEdit={(it) =>
+                            navigate(
+                              kind === 'auction'
+                                ? `/auksion/${it.id}/tahrir`
+                                : `/sorovlar/${it.id}/tahrir`,
+                            )
+                          }
+                          onDelete={(it) => remove(it, kind)}
+                        />
+                      ))}
+                    </motion.div>
+                  )}
+                </motion.div>
+              </AnimatePresence>
+            </div>
+          </div>
         )}
       </main>
 

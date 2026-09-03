@@ -202,7 +202,7 @@ export default function ListingFormPage({ kind }) {
 
   if (!userLoading && !user) {
     return (
-      <PageShell variant="slide">
+      <PageShell variant="slide" width="form">
         <Header title={title} backTo={listTo} backLabel={t('common.back')} />
         <main className="page">
           <AuthRequired text={t(isAuction ? 'auth.needAuction' : 'auth.needRequest')} />
@@ -213,7 +213,7 @@ export default function ListingFormPage({ kind }) {
 
   if (userLoading || loadingItem) {
     return (
-      <PageShell variant="slide">
+      <PageShell variant="slide" width="form">
         <Header title={title} backTo={listTo} backLabel={t('common.back')} />
         <main className="page">
           <BlockSkeleton height={280} />
@@ -224,7 +224,7 @@ export default function ListingFormPage({ kind }) {
 
   if (done) {
     return (
-      <PageShell variant="slide">
+      <PageShell variant="slide" width="form">
         <Header title={title} />
         <main className="page">
           <SuccessCheck
@@ -243,7 +243,7 @@ export default function ListingFormPage({ kind }) {
   const stepLabels = [t('form.step1'), t('form.step2'), t('form.step3')]
 
   return (
-    <PageShell variant="slide">
+    <PageShell variant="slide" width="form">
       <Header
         title={title}
         subtitle={t(isAuction ? 'auctions.newSubtitle' : 'requests.newSubtitle')}
@@ -254,178 +254,180 @@ export default function ListingFormPage({ kind }) {
       <main className="page">
         {alert && <div className="alert">{alert}</div>}
 
-        <StepProgress current={step} total={TOTAL_STEPS} labels={stepLabels} />
+        <div className="form-card">
+          <StepProgress current={step} total={TOTAL_STEPS} labels={stepLabels} />
 
-        <form onSubmit={handleSubmit} noValidate>
-          <AnimatePresence mode="wait" custom={dir} initial={false}>
-            {/* ---------------------- 1-qadam: mahsulot ---------------------- */}
-            {step === 1 && (
-              <motion.div
-                key="step1"
-                custom={dir}
-                variants={stepVariants}
-                initial="enter"
-                animate="center"
-                exit="leave"
-              >
-                <ProductAutocomplete
-                  label={t('listing.product')}
-                  value={form.product}
-                  onChange={set('product')}
-                  placeholder={t('form.productPlaceholder')}
-                  error={errors.product}
-                />
+          <form onSubmit={handleSubmit} noValidate>
+            <AnimatePresence mode="wait" custom={dir} initial={false}>
+              {/* ---------------------- 1-qadam: mahsulot ---------------------- */}
+              {step === 1 && (
+                <motion.div
+                  key="step1"
+                  custom={dir}
+                  variants={stepVariants}
+                  initial="enter"
+                  animate="center"
+                  exit="leave"
+                >
+                  <ProductAutocomplete
+                    label={t('listing.product')}
+                    value={form.product}
+                    onChange={set('product')}
+                    placeholder={t('form.productPlaceholder')}
+                    error={errors.product}
+                  />
 
-                <Stepper
-                  label={t('listing.quantity')}
-                  value={form.quantity}
-                  onChange={set('quantity')}
-                  step={0.5}
-                  suffix={t('units.ton')}
-                  error={errors.quantity}
-                />
-              </motion.div>
-            )}
+                  <Stepper
+                    label={t('listing.quantity')}
+                    value={form.quantity}
+                    onChange={set('quantity')}
+                    step={0.5}
+                    suffix={t('units.ton')}
+                    error={errors.quantity}
+                  />
+                </motion.div>
+              )}
 
-            {/* ------------------------ 2-qadam: narx ------------------------ */}
-            {step === 2 && (
-              <motion.div
-                key="step2"
-                custom={dir}
-                variants={stepVariants}
-                initial="enter"
-                animate="center"
-                exit="leave"
-              >
-                <FormInput
-                  label={t(isAuction ? 'listing.price' : 'listing.offerPrice')}
-                  name="price"
-                  inputMode="numeric"
-                  value={form.price}
-                  onChange={(e) => set('price')(formatMoneyInput(e.target.value))}
-                  placeholder={t('form.pricePlaceholder')}
-                  suffix={t('units.somPerKg')}
-                  hint={t('form.priceHint')}
-                  error={errors.price}
-                />
-              </motion.div>
-            )}
+              {/* ------------------------ 2-qadam: narx ------------------------ */}
+              {step === 2 && (
+                <motion.div
+                  key="step2"
+                  custom={dir}
+                  variants={stepVariants}
+                  initial="enter"
+                  animate="center"
+                  exit="leave"
+                >
+                  <FormInput
+                    label={t(isAuction ? 'listing.price' : 'listing.offerPrice')}
+                    name="price"
+                    inputMode="numeric"
+                    value={form.price}
+                    onChange={(e) => set('price')(formatMoneyInput(e.target.value))}
+                    placeholder={t('form.pricePlaceholder')}
+                    suffix={t('units.somPerKg')}
+                    hint={t('form.priceHint')}
+                    error={errors.price}
+                  />
+                </motion.div>
+              )}
 
-            {/* ----------------- 3-qadam: aloqa va izoh ---------------------- */}
-            {step === 3 && (
-              <motion.div
-                key="step3"
-                custom={dir}
-                variants={stepVariants}
-                initial="enter"
-                animate="center"
-                exit="leave"
-              >
-                <FormInput
-                  label={t('form.yourName')}
-                  name="name"
-                  value={form.name}
-                  onChange={set('name')}
-                  placeholder={t('form.namePlaceholder')}
-                  required
-                  error={errors.name}
-                  autoComplete="name"
-                />
+              {/* ----------------- 3-qadam: aloqa va izoh ---------------------- */}
+              {step === 3 && (
+                <motion.div
+                  key="step3"
+                  custom={dir}
+                  variants={stepVariants}
+                  initial="enter"
+                  animate="center"
+                  exit="leave"
+                >
+                  <FormInput
+                    label={t('form.yourName')}
+                    name="name"
+                    value={form.name}
+                    onChange={set('name')}
+                    placeholder={t('form.namePlaceholder')}
+                    required
+                    error={errors.name}
+                    autoComplete="name"
+                  />
 
-                <FormInput
-                  label={t('listing.phone')}
-                  name="phone"
-                  type="tel"
-                  inputMode="tel"
-                  value={form.phone}
-                  onChange={(e) => set('phone')(formatPhoneInput(e.target.value))}
-                  onFocus={() => !form.phone && set('phone')('+998 ')}
-                  placeholder={t('form.phonePlaceholder')}
-                  required
-                  error={errors.phone}
-                  autoComplete="tel"
-                />
+                  <FormInput
+                    label={t('listing.phone')}
+                    name="phone"
+                    type="tel"
+                    inputMode="tel"
+                    value={form.phone}
+                    onChange={(e) => set('phone')(formatPhoneInput(e.target.value))}
+                    onFocus={() => !form.phone && set('phone')('+998 ')}
+                    placeholder={t('form.phonePlaceholder')}
+                    required
+                    error={errors.phone}
+                    autoComplete="tel"
+                  />
 
-                <FormInput
-                  label={t('form.region')}
-                  name="region"
-                  value={form.region}
-                  onChange={set('region')}
-                  options={[
-                    { value: '', label: t('form.regionSelect') },
-                    ...REGIONS.map((r) => ({ value: r.uz, label: regionLabel(r, lang) })),
-                  ]}
-                />
+                  <FormInput
+                    label={t('form.region')}
+                    name="region"
+                    value={form.region}
+                    onChange={set('region')}
+                    options={[
+                      { value: '', label: t('form.regionSelect') },
+                      ...REGIONS.map((r) => ({ value: r.uz, label: regionLabel(r, lang) })),
+                    ]}
+                  />
 
-                <FormInput
-                  label={t('form.district')}
-                  name="district"
-                  value={form.district}
-                  onChange={set('district')}
-                  placeholder={t('form.districtPlaceholder')}
-                />
+                  <FormInput
+                    label={t('form.district')}
+                    name="district"
+                    value={form.district}
+                    onChange={set('district')}
+                    placeholder={t('form.districtPlaceholder')}
+                  />
 
-                <FormInput
-                  label={t('listing.notes')}
-                  name="notes"
-                  textarea
-                  value={form.notes}
-                  onChange={set('notes')}
-                  placeholder={t('form.notesPlaceholder')}
-                  hint={t('form.notesHint')}
-                />
-              </motion.div>
-            )}
-          </AnimatePresence>
+                  <FormInput
+                    label={t('listing.notes')}
+                    name="notes"
+                    textarea
+                    value={form.notes}
+                    onChange={set('notes')}
+                    placeholder={t('form.notesPlaceholder')}
+                    hint={t('form.notesHint')}
+                  />
+                </motion.div>
+              )}
+            </AnimatePresence>
 
-          {/* --------------------------- Boshqaruv --------------------------- */}
-          <div className="btn-row" style={{ marginTop: 'var(--sp-5)' }}>
-            {step > 1 && (
-              <motion.button
-                type="button"
-                className="btn btn-ghost"
-                whileTap={tap}
-                onClick={goBack}
-              >
-                <ArrowLeftIcon size={17} />
-                {t('common.prev')}
-              </motion.button>
-            )}
+            {/* --------------------------- Boshqaruv --------------------------- */}
+            <div className="btn-row" style={{ marginTop: 'var(--sp-5)' }}>
+              {step > 1 && (
+                <motion.button
+                  type="button"
+                  className="btn btn-ghost"
+                  whileTap={tap}
+                  onClick={goBack}
+                >
+                  <ArrowLeftIcon size={17} />
+                  {t('common.prev')}
+                </motion.button>
+              )}
 
-            {step < TOTAL_STEPS ? (
-              <motion.button
-                type="button"
-                className="btn btn-primary"
-                whileTap={tap}
-                onClick={goNext}
-              >
-                {t('common.next')}
-                <ArrowRightIcon size={17} />
-              </motion.button>
-            ) : (
-              <motion.button
-                type="submit"
-                className="btn btn-primary"
-                whileTap={tap}
-                disabled={saving}
-              >
-                {saving ? (
-                  <>
-                    <span className="spinner" />
-                    {t(isAuction ? 'auctions.submitting' : 'requests.submitting')}
-                  </>
-                ) : (
-                  <>
-                    <CheckIcon size={18} />
-                    {isEdit
-                      ? t('common.save')
-                      : t(isAuction ? 'auctions.submit' : 'requests.submit')}
-                  </>
-                )}
-              </motion.button>
-            )}
-          </div>
-        </form>
+              {step < TOTAL_STEPS ? (
+                <motion.button
+                  type="button"
+                  className="btn btn-primary"
+                  whileTap={tap}
+                  onClick={goNext}
+                >
+                  {t('common.next')}
+                  <ArrowRightIcon size={17} />
+                </motion.button>
+              ) : (
+                <motion.button
+                  type="submit"
+                  className="btn btn-primary"
+                  whileTap={tap}
+                  disabled={saving}
+                >
+                  {saving ? (
+                    <>
+                      <span className="spinner" />
+                      {t(isAuction ? 'auctions.submitting' : 'requests.submitting')}
+                    </>
+                  ) : (
+                    <>
+                      <CheckIcon size={18} />
+                      {isEdit
+                        ? t('common.save')
+                        : t(isAuction ? 'auctions.submit' : 'requests.submit')}
+                    </>
+                  )}
+                </motion.button>
+              )}
+              </div>
+          </form>
+        </div>
       </main>
     </PageShell>
   )

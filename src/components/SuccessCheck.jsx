@@ -19,7 +19,7 @@ export default function SuccessCheck({ title, subtitle }) {
             cy="26"
             r="22"
             fill="none"
-            stroke="var(--primary)"
+            stroke="var(--accent-strong)"
             strokeWidth="3"
             strokeLinecap="round"
             initial={{ pathLength: 0 }}
@@ -29,7 +29,7 @@ export default function SuccessCheck({ title, subtitle }) {
           <motion.path
             d="M16 27l7 7 13-14"
             fill="none"
-            stroke="var(--primary)"
+            stroke="var(--accent-strong)"
             strokeWidth="3.5"
             strokeLinecap="round"
             strokeLinejoin="round"

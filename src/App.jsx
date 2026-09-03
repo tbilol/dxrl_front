@@ -1,6 +1,6 @@
 import { AnimatePresence } from 'framer-motion'
 import { Navigate, Route, Routes, useLocation } from 'react-router-dom'
-import BottomNav from './components/BottomNav.jsx'
+import Layout from './components/Layout.jsx'
 import ListingListPage from './pages/ListingListPage.jsx'
 import ListingFormPage from './pages/ListingFormPage.jsx'
 import ListingDetailPage from './pages/ListingDetailPage.jsx'
@@ -10,16 +10,11 @@ import StatsPage from './pages/StatsPage.jsx'
 import ProfilePage from './pages/ProfilePage.jsx'
 import SettingsPage from './pages/SettingsPage.jsx'
 
-/** Chat sahifasida pastki menyu o'rniga xabar kiritish paneli turadi. */
-function usesBottomNav(pathname) {
-  return !/^\/xabarlar\/[^/]+$/.test(pathname)
-}
-
 export default function App() {
   const location = useLocation()
 
   return (
-    <div className="app">
+    <Layout>
       {/* mode="wait" — eski sahifa chiqib bo'lgach yangisi kiradi */}
       <AnimatePresence mode="wait" initial={false}>
         <Routes location={location} key={location.pathname}>
@@ -47,8 +42,6 @@ export default function App() {
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </AnimatePresence>
-
-      {usesBottomNav(location.pathname) && <BottomNav />}
-    </div>
+    </Layout>
   )
 }

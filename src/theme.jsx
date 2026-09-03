@@ -27,7 +27,7 @@ function paint(resolved) {
   document.documentElement.dataset.theme = resolved
   // Brauzer manzil paneli rangi ham mavzuga moslashadi.
   const meta = document.querySelector('meta[name="theme-color"]')
-  if (meta) meta.setAttribute('content', resolved === 'dark' ? '#0C1310' : '#0F7B4F')
+  if (meta) meta.setAttribute('content', resolved === 'dark' ? '#1E1814' : '#A98B76')
 }
 
 /**

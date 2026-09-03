@@ -93,7 +93,7 @@ export default function SettingsPage() {
   ]
 
   return (
-    <PageShell variant="slide">
+    <PageShell variant="slide" width="form">
       <Header
         title={t('settings.title')}
         subtitle={t('settings.subtitle')}
@@ -113,7 +113,7 @@ export default function SettingsPage() {
             {/* ---------------------------- Akkaunt ---------------------------- */}
             <h2 className="section-title">{t('settings.account')}</h2>
 
-            <form onSubmit={save}>
+            <form onSubmit={save} className="form-card">
               <FormInput
                 label={t('profile.email')}
                 name="email"

@@ -37,19 +37,36 @@ export default function ListingListPage({ kind }) {
   }, [load])
 
   const newTo = isAuction ? '/auksion/yangi' : '/sorovlar/yangi'
+  const newLabel = t(isAuction ? 'auctions.new' : 'requests.new')
 
   return (
-    <PageShell>
+    <PageShell width="wide">
       <Header
         title={t(isAuction ? 'auctions.title' : 'requests.title')}
         subtitle={t(isAuction ? 'auctions.subtitle' : 'requests.subtitle')}
+        actions={
+          /* Desktopda header ichidagi tugma, kichik ekranlarda pastdagi FAB. */
+          <motion.button
+            type="button"
+            className="header-cta"
+            whileTap={tapSmall}
+            onClick={() => navigate(newTo)}
+          >
+            <PlusIcon size={18} />
+            {newLabel}
+          </motion.button>
+        }
       />
 
       <PullToRefresh onRefresh={load}>
         <main className="page">
           {alert && <div className="alert">{alert}</div>}
 
-          {items === null && <ListingSkeleton />}
+          {items === null && (
+            <div className="card-grid">
+              <ListingSkeleton />
+            </div>
+          )}
 
           {items !== null && items.length === 0 && !alert && (
             <EmptyState
@@ -60,7 +77,12 @@ export default function ListingListPage({ kind }) {
           )}
 
           {items !== null && items.length > 0 && (
-            <motion.div variants={listContainer} initial="initial" animate="animate">
+            <motion.div
+              className="card-grid"
+              variants={listContainer}
+              initial="initial"
+              animate="animate"
+            >
               {items.map((item) => (
                 <ListingCard key={item.id} item={item} kind={kind} />
               ))}
@@ -77,7 +99,7 @@ export default function ListingListPage({ kind }) {
         animate={{ scale: 1, rotate: 0 }}
         transition={{ type: 'spring', stiffness: 400, damping: 22, delay: 0.15 }}
         onClick={() => navigate(newTo)}
-        aria-label={t(isAuction ? 'auctions.new' : 'requests.new')}
+        aria-label={newLabel}
       >
         <PlusIcon size={26} />
       </motion.button>

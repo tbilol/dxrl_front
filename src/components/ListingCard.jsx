@@ -83,11 +83,7 @@ export default function ListingCard({ item, kind, onEdit, onDelete }) {
         </div>
 
         {showActions && (
-          <div
-            className="btn-row"
-            style={{ marginTop: 'var(--sp-3)' }}
-            onClick={(e) => e.stopPropagation()}
-          >
+          <div className="btn-row listing-actions" onClick={(e) => e.stopPropagation()}>
             {onEdit && (
               <motion.button
                 type="button"
