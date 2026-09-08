@@ -12,11 +12,14 @@ import { errorMessage, getConversations } from '../api.js'
 import { useLanguage } from '../i18n/index.jsx'
 import useCurrentUser from '../useCurrentUser.js'
 import { useIsDesktop } from '../useMediaQuery.js'
+import log from '../logger.js'
+import useLogMount from '../useLogMount.js'
 
 const POLL_MS = 8000
 
 /** Suhbatlar ro'yxati. Desktopda Telegram uslubidagi ikki panelli ko'rinish. */
 export default function ConversationsPage() {
+  useLogMount('ConversationsPage')
   const navigate = useNavigate()
   const { t } = useLanguage()
   const { user, loading: userLoading } = useCurrentUser()
@@ -27,10 +30,13 @@ export default function ConversationsPage() {
 
   const load = useCallback(async () => {
     try {
-      setItems(await getConversations())
+      const data = await getConversations()
+      setItems(data)
+      log.chat('Suhbatlar yangilandi', { count: data.length })
       setAlert('')
     } catch (err) {
       if (err?.response?.status !== 401) setAlert(errorMessage(err, t))
+      log.chat.error('Suhbatlarni yuklab bo\'lmadi', err)
       setItems([])
     }
   }, [t])
@@ -49,7 +55,12 @@ export default function ConversationsPage() {
   if (!userLoading && !user) {
     return (
       <PageShell width="mid">
-        <Header title={t('messages.title')} subtitle={t('messages.subtitle')} />
+        <Header
+          title={t('messages.title')}
+          subtitle={t('messages.subtitle')}
+          backTo="/profil"
+          backLabel={t('common.back')}
+        />
         <main className="page">
           <AuthRequired text={t('auth.needMessages')} />
         </main>
@@ -72,7 +83,10 @@ export default function ConversationsPage() {
         <ConversationList
           items={items}
           currentUserId={user?.id}
-          onSelect={(conv) => navigate(`/xabarlar/${conv.id}`)}
+          onSelect={(conv) => {
+            log.chat('Suhbat tanlandi', conv.id)
+            navigate(`/xabarlar/${conv.id}`)
+          }}
         />
       )}
     </>
@@ -111,8 +125,13 @@ export default function ConversationsPage() {
   /* ------------------------ Mobil / planshet ko'rinishi -------------------- */
 
   return (
-    <PageShell width="mid">
-      <Header title={t('messages.title')} subtitle={t('messages.subtitle')} />
+    <PageShell width="mid" variant="slide">
+      <Header
+        title={t('messages.title')}
+        subtitle={t('messages.subtitle')}
+        backTo="/profil"
+        backLabel={t('common.back')}
+      />
 
       <PullToRefresh onRefresh={load}>
         <main className="page page-flush">

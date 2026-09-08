@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { errorMessage, getMe } from './api.js'
 import { clearToken, getToken } from './auth.js'
+import log from './logger.js'
 
 /**
  * Joriy foydalanuvchi profilini /api/auth/me dan yuklaydi.
@@ -30,12 +31,14 @@ export default function useCurrentUser() {
     try {
       const data = await getMe()
       if (activeRef.current) setUser(data)
+      log.auth('Profil yuklandi', { userId: data?.id, role: data?.role })
       return data
     } catch (err) {
       if (activeRef.current) {
         setUser(null)
         // 401 bo'lsa token allaqachon tozalangan — xato ko'rsatishning hojati yo'q.
         if (err?.response?.status !== 401) setError(errorMessage(err))
+        else log.auth('Sessiya tugagan — foydalanuvchi tozalandi')
       }
       return null
     } finally {
@@ -48,6 +51,7 @@ export default function useCurrentUser() {
   }, [reload])
 
   const logout = useCallback(() => {
+    log.auth('Foydalanuvchi chiqmoqda')
     clearToken()
     setUser(null)
     setError('')

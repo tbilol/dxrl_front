@@ -2,8 +2,11 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useState } 
 import ru from './ru.json'
 import uz from './uz.json'
 
+import log from '../logger.js'
+import { KEYS, readStored, writeStored } from '../storage.js'
+
 const DICTS = { uz, ru }
-const STORAGE_KEY = 'agro_auksion_lang'
+const STORAGE_KEY = KEYS.lang
 export const DEFAULT_LANG = 'uz'
 
 export const LANGUAGES = [
@@ -14,12 +17,8 @@ export const LANGUAGES = [
 const LanguageContext = createContext(null)
 
 function readSavedLang() {
-  try {
-    const saved = localStorage.getItem(STORAGE_KEY)
-    if (saved && DICTS[saved]) return saved
-  } catch {
-    /* localStorage o'chirilgan bo'lishi mumkin */
-  }
+  const saved = readStored(STORAGE_KEY)
+  if (saved && DICTS[saved]) return saved
   return DEFAULT_LANG
 }
 
@@ -27,12 +26,9 @@ export function LanguageProvider({ children }) {
   const [lang, setLang] = useState(readSavedLang)
 
   useEffect(() => {
-    try {
-      localStorage.setItem(STORAGE_KEY, lang)
-    } catch {
-      /* e'tiborsiz */
-    }
+    writeStored(STORAGE_KEY, lang)
     document.documentElement.lang = lang
+    log.i18n('Til almashtirildi', lang)
   }, [lang])
 
   /** t('listing.price') yoki t('form.step', { current: 1, total: 3 }) */

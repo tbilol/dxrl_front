@@ -1,5 +1,6 @@
 import axios from 'axios'
 import { clearToken, getToken } from './auth.js'
+import log from './logger.js'
 
 export const API_BASE_URL = 'http://localhost:8000'
 
@@ -14,24 +15,67 @@ api.interceptors.request.use((config) => {
   if (token) {
     config.headers.Authorization = `Bearer ${token}`
   }
+
+  // Javob kelganda davomiylikni hisoblash uchun.
+  config.meta = { started: performance.now() }
+  const method = (config.method || 'get').toUpperCase()
+  log.api(`${method} ${config.url}`, config.params ?? '')
   return config
 })
 
 // Token eskirgan bo'lsa — uni tozalaymiz, foydalanuvchi qayta kiradi.
 api.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    const ms = Math.round(performance.now() - (response.config.meta?.started ?? 0))
+    const size = Array.isArray(response.data) ? `${response.data.length} ta` : ''
+    log.api(`Javob ${response.status} · ${ms}ms ${size}`, response.data)
+    return response
+  },
   (error) => {
-    if (error?.response?.status === 401) clearToken()
+    const cfg = error?.config
+    const method = (cfg?.method || 'get').toUpperCase()
+    const status = error?.response?.status
+
+    if (status === 401) {
+      log.auth('Token yaroqsiz — tozalanmoqda')
+      clearToken()
+    }
+
+    const ms = Math.round(performance.now() - (cfg?.meta?.started ?? 0))
+    log.api.error('So\'rov muvaffaqiyatsiz', {
+      url: cfg?.url,
+      method,
+      status: status ?? error?.code ?? 'network',
+      ms,
+      detail: error?.response?.data?.detail,
+      error,
+    })
     return Promise.reject(error)
   },
 )
 
 /* ---------------------------- Autentifikatsiya --------------------------- */
 
-/** Google ruxsat oynasiga o'tish manzili (to'liq sahifa yo'naltirish uchun). */
+/** OAuth ruxsat oynalariga o'tish manzillari (to'liq sahifa yo'naltirish uchun). */
 export const GOOGLE_LOGIN_URL = `${API_BASE_URL}/api/auth/google/login`
+export const APPLE_LOGIN_URL = `${API_BASE_URL}/api/auth/apple/login`
 
 export const getMe = () => api.get('/api/auth/me').then((r) => r.data)
+
+/** Telefon + parol: ro'yxatdan o'tish. { access_token, profile } qaytaradi. */
+export const phoneRegister = (data) =>
+  api.post('/api/auth/phone/register', data).then((r) => r.data)
+
+/** Telefon + parol: kirish. { access_token, profile } qaytaradi. */
+export const phoneLogin = (data) => api.post('/api/auth/phone/login', data).then((r) => r.data)
+
+/** Joriy profilga telefon + parol qo'shish (token talab qilinadi). */
+export const linkPhonePassword = (data) =>
+  api.post('/api/auth/phone/link', data).then((r) => r.data)
+
+/** Parol bilan kirishni o'chirish. */
+export const unlinkPhonePassword = () =>
+  api.delete('/api/auth/phone/link').then((r) => r.data)
 
 /* ------------------------------ Auksionlar ------------------------------ */
 
@@ -65,6 +109,21 @@ export const createProfile = (data) => api.post('/api/profiles', data).then((r) 
 export const updateProfile = (id, data) => api.put(`/api/profiles/${id}`, data).then((r) => r.data)
 export const deleteProfile = (id) => api.delete(`/api/profiles/${id}`).then((r) => r.data)
 
+/* --------------------------------- Obuna -------------------------------- */
+
+/** { is_followed, followers_count } qaytaradi. */
+export const followProfile = (id) =>
+  api.post(`/api/profiles/${id}/follow`).then((r) => r.data)
+
+export const unfollowProfile = (id) =>
+  api.delete(`/api/profiles/${id}/follow`).then((r) => r.data)
+
+export const getFollowers = (id) =>
+  api.get(`/api/profiles/${id}/followers`).then((r) => r.data)
+
+export const getFollowing = (id) =>
+  api.get(`/api/profiles/${id}/following`).then((r) => r.data)
+
 /* ------------------------------- Xabarlar ------------------------------- */
 
 export const getConversations = () => api.get('/api/conversations').then((r) => r.data)
@@ -97,7 +156,7 @@ export function errorMessage(err, t) {
   const detail = err?.response?.data?.detail
 
   if (err?.response?.status === 401) {
-    return t ? t('auth.sessionExpired') : 'Sessiya tugadi. Google orqali qaytadan kiring.'
+    return t ? t('auth.sessionExpired') : 'Sessiya tugadi. Qaytadan kiring.'
   }
   if (typeof detail === 'string') return detail
   if (Array.isArray(detail) && detail.length) {

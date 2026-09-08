@@ -11,9 +11,12 @@ import { CartIcon, GavelIcon, PlusIcon } from '../components/Icons.jsx'
 import { errorMessage, getAuctions, getRequests } from '../api.js'
 import { useT } from '../i18n/index.jsx'
 import { listContainer, tapSmall } from '../motion.js'
+import log from '../logger.js'
+import useLogMount from '../useLogMount.js'
 
 /** Auksionlar va so'rovlar ro'yxati — bitta komponent, `kind` bilan farqlanadi. */
 export default function ListingListPage({ kind }) {
+  useLogMount('ListingListPage')
   const t = useT()
   const navigate = useNavigate()
   const isAuction = kind === 'auction'
@@ -25,9 +28,11 @@ export default function ListingListPage({ kind }) {
     try {
       const data = isAuction ? await getAuctions() : await getRequests()
       setItems(data)
+      log.front(`${isAuction ? 'Auksionlar' : "So'rovlar"} yuklandi`, { count: data.length })
       setAlert('')
     } catch (err) {
       setAlert(errorMessage(err, t))
+      log.front.error("Ro'yxatni yuklab bo'lmadi", err)
       setItems([])
     }
   }, [isAuction, t])

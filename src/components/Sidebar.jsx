@@ -4,13 +4,11 @@ import { LeafIcon, SettingsIcon } from './Icons.jsx'
 import { useT } from '../i18n/index.jsx'
 import { spring } from '../motion.js'
 import NAV_ITEMS from '../navItems.js'
-import useUnread from '../useUnread.js'
 
 /** Desktop (>= 1024px) uchun chapdagi shishasimon yon menyu. */
 export default function Sidebar() {
   const t = useT()
   const reduced = useReducedMotion()
-  const { count } = useUnread()
 
   return (
     <aside className="sidebar">
@@ -27,7 +25,7 @@ export default function Sidebar() {
       </div>
 
       <nav aria-label={t('app.name')} style={{ display: 'grid', gap: 4 }}>
-        {NAV_ITEMS.map(({ to, icon: Icon, key, end, badge }) => (
+        {NAV_ITEMS.map(({ to, icon: Icon, key, end }) => (
           <NavLink
             key={to}
             to={to}
@@ -54,25 +52,13 @@ export default function Sidebar() {
 
                 <span className="side-label">{t(key)}</span>
 
-                {badge && count > 0 ? (
+                {isActive && (
                   <motion.span
-                    className="side-badge"
-                    initial={{ scale: 0 }}
-                    animate={{ scale: 1 }}
-                    transition={spring}
-                    aria-label={`${count} ${t('nav.messages')}`}
-                  >
-                    {count > 99 ? '99+' : count}
-                  </motion.span>
-                ) : (
-                  isActive && (
-                    <motion.span
-                      layoutId="side-dot"
-                      className="side-dot"
-                      transition={reduced ? { duration: 0 } : spring}
-                      aria-hidden="true"
-                    />
-                  )
+                    layoutId="side-dot"
+                    className="side-dot"
+                    transition={reduced ? { duration: 0 } : spring}
+                    aria-hidden="true"
+                  />
                 )}
               </>
             )}

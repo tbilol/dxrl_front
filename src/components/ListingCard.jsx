@@ -73,14 +73,25 @@ export default function ListingCard({ item, kind, onEdit, onDelete }) {
 
         {item.notes && <p className="listing-notes">{item.notes}</p>}
 
-        <div className="listing-owner">
-          {item.owner ? (
+        {/* E'lon egasi — bosilganda uning profiliga o'tadi. */}
+        {item.owner ? (
+          <button
+            type="button"
+            className="listing-owner is-link"
+            onClick={(e) => {
+              e.stopPropagation()
+              navigate(`/profile/${item.owner.id}`)
+            }}
+          >
             <Avatar name={item.owner.name} src={item.owner.avatar_url} size={24} />
-          ) : (
+            <span>{item.owner.name}</span>
+          </button>
+        ) : (
+          <div className="listing-owner">
             <UserIcon size={15} />
-          )}
-          <span>{item.owner?.name || name}</span>
-        </div>
+            <span>{name}</span>
+          </div>
+        )}
 
         {showActions && (
           <div className="btn-row listing-actions" onClick={(e) => e.stopPropagation()}>

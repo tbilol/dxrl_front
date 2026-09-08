@@ -1,13 +1,25 @@
 import { motion } from 'framer-motion'
-import { GOOGLE_LOGIN_URL } from '../api.js'
-import { GoogleIcon, LeafIcon, LockIcon } from './Icons.jsx'
+import { useNavigate } from 'react-router-dom'
+import { APPLE_LOGIN_URL, GOOGLE_LOGIN_URL } from '../api.js'
+import { AppleIcon, GoogleIcon, LeafIcon, LockIcon, PhoneIcon } from './Icons.jsx'
 import { useT } from '../i18n/index.jsx'
-import { spring, tap } from '../motion.js'
+import log from '../logger.js'
+import { listContainer, listItem, spring, tap } from '../motion.js'
 
-/** Tizimga kirmagan foydalanuvchiga ko'rsatiladigan Google kirish kartasi. */
+/**
+ * Tizimga kirmagan foydalanuvchiga ko'rsatiladigan karta —
+ * uchta kirish usuli: Google, iCloud (Apple) va telefon + parol.
+ */
 export default function AuthRequired({ icon = 'lock', title, text, note }) {
   const t = useT()
+  const navigate = useNavigate()
   const Icon = icon === 'leaf' ? LeafIcon : LockIcon
+
+  // OAuth uchun to'liq sahifa yo'naltirish kerak (axios emas).
+  const go = (provider, url) => () => {
+    log.auth(`${provider} orqali kirish boshlandi`, url)
+    window.location.href = url
+  }
 
   return (
     <motion.div
@@ -28,18 +40,48 @@ export default function AuthRequired({ icon = 'lock', title, text, note }) {
       <h2>{title || t('auth.signInRequired')}</h2>
       {text && <p>{text}</p>}
 
-      <motion.button
-        type="button"
-        className="btn btn-google"
-        whileTap={tap}
-        // Google sahifasiga to'liq yo'naltirish (axios emas).
-        onClick={() => {
-          window.location.href = GOOGLE_LOGIN_URL
-        }}
+      <motion.div
+        className="auth-methods"
+        variants={listContainer}
+        initial="initial"
+        animate="animate"
       >
-        <GoogleIcon size={20} />
-        {t('auth.googleButton')}
-      </motion.button>
+        <motion.button
+          type="button"
+          className="btn btn-google"
+          variants={listItem}
+          whileTap={tap}
+          onClick={go('Google', GOOGLE_LOGIN_URL)}
+        >
+          <GoogleIcon size={20} />
+          {t('auth.withGoogle')}
+        </motion.button>
+
+        <motion.button
+          type="button"
+          className="btn btn-apple"
+          variants={listItem}
+          whileTap={tap}
+          onClick={go('Apple (iCloud)', APPLE_LOGIN_URL)}
+        >
+          <AppleIcon size={20} />
+          {t('auth.withApple')}
+        </motion.button>
+
+        <motion.button
+          type="button"
+          className="btn btn-secondary"
+          variants={listItem}
+          whileTap={tap}
+          onClick={() => {
+            log.auth('Telefon orqali kirish tanlandi')
+            navigate('/kirish')
+          }}
+        >
+          <PhoneIcon size={19} />
+          {t('auth.withPhone')}
+        </motion.button>
+      </motion.div>
 
       {note && <p className="auth-note">{note}</p>}
     </motion.div>

@@ -8,6 +8,8 @@ import ConversationsPage from './pages/ConversationsPage.jsx'
 import ChatPage from './pages/ChatPage.jsx'
 import StatsPage from './pages/StatsPage.jsx'
 import ProfilePage from './pages/ProfilePage.jsx'
+import FollowListPage from './pages/FollowListPage.jsx'
+import PhoneAuthPage from './pages/PhoneAuthPage.jsx'
 import SettingsPage from './pages/SettingsPage.jsx'
 
 export default function App() {
@@ -34,9 +36,21 @@ export default function App() {
           <Route path="/xabarlar" element={<ConversationsPage />} />
           <Route path="/xabarlar/:conversationId" element={<ChatPage />} />
 
+          {/* Profil: o'ziniki va boshqa foydalanuvchilarniki */}
+          <Route path="/profil" element={<ProfilePage />} />
+          <Route path="/profile/:userId" element={<ProfilePage />} />
+          <Route
+            path="/profile/:userId/kuzatuvchilar"
+            element={<FollowListPage mode="followers" />}
+          />
+          <Route
+            path="/profile/:userId/kuzatilganlar"
+            element={<FollowListPage mode="following" />}
+          />
+
           {/* Qolganlari */}
           <Route path="/statistika" element={<StatsPage />} />
-          <Route path="/profil" element={<ProfilePage />} />
+          <Route path="/kirish" element={<PhoneAuthPage />} />
           <Route path="/sozlamalar" element={<SettingsPage />} />
 
           <Route path="*" element={<Navigate to="/" replace />} />

@@ -1,5 +1,5 @@
 /* ==========================================================================
-   Agro Auksion — dizayn tizimi
+   AGROGRAM — dizayn tizimi
    Palitra: iliq jigarrang (asosiy) + tan (ikkilamchi) + krem fon + zaytun urg'u.
    Barcha ranglar semantik token orqali beriladi — komponentlarda hech qanday
    qattiq (hardcoded) rang yo'q. Mavzu [data-theme] atributi bilan almashadi.
@@ -84,6 +84,10 @@
   /* Fokus halqasi — zaytun yashil nur */
   --focus-ring: 0 0 0 3px rgba(186, 191, 148, 0.45);
 
+  /* Apple tugmasi monoxrom bo'lishi shart (brend qoidasi). */
+  --apple-bg: #3d2e22;
+  --apple-fg: #ffffff;
+
   color-scheme: light;
 }
 
@@ -145,6 +149,9 @@
   --skeleton-b: #3a2e26;
 
   --focus-ring: 0 0 0 3px rgba(200, 206, 159, 0.35);
+
+  --apple-bg: #f3e4c9;
+  --apple-fg: #1e1814;
 
   color-scheme: dark;
 }
@@ -543,7 +550,7 @@ img {
   height: calc(var(--nav-h) + env(safe-area-inset-bottom));
   padding-bottom: env(safe-area-inset-bottom);
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
+  grid-template-columns: repeat(4, 1fr);
   align-items: center;
   background: var(--glass);
   backdrop-filter: blur(18px) saturate(180%);
@@ -2411,4 +2418,376 @@ img {
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
   }
+}
+
+/* ======================= AGROGRAM 3.0 — KIRISH ========================== */
+
+.auth-methods {
+  display: grid;
+  gap: var(--sp-2);
+}
+
+/* Apple brend qoidasi bo'yicha tugma monoxrom. */
+.btn-apple {
+  background: var(--apple-bg);
+  color: var(--apple-fg);
+}
+
+@media (hover: hover) {
+  .btn-apple:hover:not(:disabled) {
+    opacity: 0.88;
+  }
+}
+
+/* Parol maydonidagi ko'z tugmasi. */
+.float-field.has-toggle .control {
+  padding-right: 54px;
+}
+
+.input-toggle {
+  position: absolute;
+  right: 6px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  color: var(--text-3);
+  transition: color var(--dur) var(--ease-out), background var(--dur) var(--ease-out);
+}
+
+.input-toggle:hover {
+  color: var(--text);
+  background: var(--surface-2);
+}
+
+/* ==================== INSTAGRAM USLUBIDAGI PROFIL ======================= */
+
+.ig-profile {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  box-shadow: var(--shadow);
+  padding: var(--sp-5) var(--sp-4);
+  margin-bottom: var(--sp-4);
+}
+
+/* Avatar chapda, uchta ko'rsatkich o'ngda. */
+.ig-top {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-4);
+}
+
+.ig-stats {
+  flex: 1;
+  min-width: 0;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--sp-2);
+}
+
+.ig-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1px;
+  min-height: 48px;
+  padding: 4px 2px;
+  border-radius: var(--r-xs);
+  text-align: center;
+  transition: background var(--dur) var(--ease-out);
+}
+
+button.ig-stat:hover {
+  background: var(--surface-2);
+}
+
+.ig-stat-value {
+  font-size: 19px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+  color: var(--text);
+}
+
+.ig-stat-label {
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--text-2);
+  line-height: 1.2;
+}
+
+.ig-bio {
+  margin-top: var(--sp-4);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 7px;
+}
+
+.ig-bio h2 {
+  margin: 0;
+  font-size: 18px;
+  letter-spacing: -0.02em;
+  word-break: break-word;
+}
+
+.ig-address {
+  margin: 0;
+  color: var(--text-2);
+  font-size: 13.5px;
+  line-height: 1.45;
+}
+
+.ig-actions {
+  display: flex;
+  gap: var(--sp-2);
+  margin-top: var(--sp-4);
+}
+
+.ig-actions > * {
+  flex: 1;
+  width: auto;
+}
+
+/* Profil ichidagi "Auksionlar | So'rovlar" tablari. */
+.ig-tabs .segment-btn span {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+/* Tugma ichidagi kichik o'qilmagan xabar nishoni. */
+.inline-badge {
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 9px;
+  background: var(--primary);
+  color: var(--on-primary);
+  font-size: 10.5px;
+  font-weight: 800;
+  display: inline-grid;
+  place-items: center;
+  line-height: 1;
+}
+
+/* Obuna tugmasidagi matn almashinuvi. */
+.follow-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.btn.is-following {
+  color: var(--text-2);
+}
+
+/* ------------------ Kuzatuvchilar / kuzatilganlar ro'yxati ---------------- */
+
+.user-row {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  padding: 10px var(--sp-4);
+  border-bottom: 1px solid var(--border);
+  min-height: 72px;
+}
+
+.user-row:last-child {
+  border-bottom: none;
+}
+
+.user-row-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  text-align: left;
+  padding: 4px;
+  margin: -4px;
+  border-radius: var(--r-sm);
+  transition: background var(--dur) var(--ease-out);
+}
+
+@media (hover: hover) {
+  .user-row-main:hover {
+    background: var(--surface-2);
+  }
+}
+
+.user-row-body {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.user-row-name {
+  font-weight: 700;
+  font-size: 15px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.user-row-sub {
+  color: var(--text-2);
+  font-size: 12.5px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* --------------------- Profilga o'tadigan joylar ------------------------- */
+
+/* Karta ichidagi e'lon egasi — alohida bosiladigan soha. */
+.listing-owner.is-link {
+  width: auto;
+  padding: 4px 8px 4px 4px;
+  margin-left: -4px;
+  border-radius: 999px;
+  min-height: 34px;
+  transition: background var(--dur) var(--ease-out);
+}
+
+@media (hover: hover) {
+  .listing-owner.is-link:hover {
+    background: var(--surface-2);
+    color: var(--text);
+  }
+}
+
+/* Chat sarlavhasidagi suhbatdosh. */
+.chat-peer {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  text-align: left;
+  padding: 4px 8px 4px 4px;
+  border-radius: 999px;
+  transition: background var(--dur) var(--ease-out);
+}
+
+.chat-peer:disabled {
+  cursor: default;
+}
+
+@media (hover: hover) {
+  .chat-peer:not(:disabled):hover {
+    background: var(--surface-2);
+  }
+}
+
+/* ------------------------- Ulangan akkauntlar ---------------------------- */
+
+.link-row {
+  gap: var(--sp-3);
+}
+
+.link-row .k {
+  text-transform: none;
+  letter-spacing: 0;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--text-3);
+}
+
+/* Ulangan holat — zaytun yashil (rang yagona belgi emas: matn ham bor). */
+.link-row .k.is-on {
+  color: var(--accent-strong);
+}
+
+.link-row .btn-sm {
+  flex: 0 0 auto;
+}
+
+.link-ok {
+  color: var(--accent-strong);
+  flex: 0 0 auto;
+}
+
+.link-form {
+  overflow: hidden;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface-2);
+}
+
+.link-form > *:not(.link-form-title) {
+  margin-inline: var(--sp-4);
+}
+
+.link-form-title {
+  margin: 0;
+  padding: var(--sp-3) var(--sp-4) 0;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-2);
+}
+
+.link-form .btn-row {
+  padding-bottom: var(--sp-4);
+}
+
+/* ======================== DASTURCHI REJIMI (loglar) ===================== */
+
+.debug-row {
+  cursor: pointer;
+  transition: background var(--dur) var(--ease-out);
+}
+
+@media (hover: hover) {
+  .debug-row:hover {
+    background: var(--surface-2);
+  }
+}
+
+.debug-row .k {
+  text-transform: none;
+  letter-spacing: 0;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--text-3);
+}
+
+.debug-row .k.is-on {
+  color: var(--accent-strong);
+}
+
+/* Yoqish/o'chirish tugmasi — palitradagi tokenlar bilan. */
+.switch {
+  position: relative;
+  width: 48px;
+  height: 28px;
+  flex: 0 0 auto;
+  border-radius: 999px;
+  background: var(--surface-3);
+  border: 1px solid var(--border-strong);
+  display: flex;
+  align-items: center;
+  padding: 2px;
+  justify-content: flex-start;
+  transition: background var(--dur) var(--ease-out), border-color var(--dur) var(--ease-out);
+}
+
+.switch.is-on {
+  background: var(--accent);
+  border-color: var(--accent-strong);
+  justify-content: flex-end;
+}
+
+.switch-knob {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--surface);
+  box-shadow: var(--shadow-sm);
+  display: block;
 }

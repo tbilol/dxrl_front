@@ -7,6 +7,8 @@ import { getConversations } from '../api.js'
 import { useLanguage } from '../i18n/index.jsx'
 import useCurrentUser from '../useCurrentUser.js'
 import { useIsDesktop } from '../useMediaQuery.js'
+import log from '../logger.js'
+import useLogMount from '../useLogMount.js'
 
 /**
  * Yozishmalar sahifasi.
@@ -14,6 +16,7 @@ import { useIsDesktop } from '../useMediaQuery.js'
  *   desktop          — chapda suhbatlar ro'yxati, o'ngda yozishma (Telegram uslubi)
  */
 export default function ChatPage() {
+  useLogMount('ChatPage')
   const { conversationId } = useParams()
   const navigate = useNavigate()
   const { t } = useLanguage()
@@ -26,7 +29,11 @@ export default function ChatPage() {
   useEffect(() => {
     let active = true
     getConversations()
-      .then((list) => active && setConversations(list))
+      .then((list) => {
+        if (!active) return
+        setConversations(list)
+        log.chat('Suhbatlar ro\'yxati yuklandi', { count: list.length, active: conversationId })
+      })
       .catch(() => {
         /* sarlavha ikkinchi darajali — xabarlar baribir yuklanadi */
       })

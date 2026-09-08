@@ -21,6 +21,8 @@ import { useT } from '../i18n/index.jsx'
 import { spring } from '../motion.js'
 import { useTheme } from '../theme.jsx'
 import { formatNumber } from '../utils.js'
+import log from '../logger.js'
+import useLogMount from '../useLogMount.js'
 
 /**
  * Mavzuga mos diagramma ranglari. Recharts CSS o'zgaruvchilarini o'qiy olmaydi,
@@ -119,6 +121,7 @@ const FILTERS = [
 ]
 
 export default function StatsPage() {
+  useLogMount('StatsPage')
   const t = useT()
   const { isDark } = useTheme()
   const colors = chartPalette(isDark)
@@ -140,9 +143,15 @@ export default function StatsPage() {
       setTopAuctions(auctions)
       setTopRequests(requests)
       setSummary(sum)
+      log.front('Statistika yuklandi', {
+        auctions: auctions.length,
+        requests: requests.length,
+        ...sum,
+      })
       setAlert('')
     } catch (err) {
       setAlert(errorMessage(err, t))
+      log.front.error("Statistikani yuklab bo'lmadi", err)
     } finally {
       setLoading(false)
     }
@@ -172,7 +181,10 @@ export default function StatsPage() {
                 role="tab"
                 aria-selected={filter === f.key}
                 className={`segment-btn${filter === f.key ? ' active' : ''}`}
-                onClick={() => setFilter(f.key)}
+                onClick={() => {
+                  log.front('Statistika filtri', f.key)
+                  setFilter(f.key)
+                }}
               >
                 {filter === f.key && (
                   <motion.span layoutId="stats-ind" className="segment-ind" transition={spring} />

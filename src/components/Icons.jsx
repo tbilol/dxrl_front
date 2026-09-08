@@ -304,3 +304,85 @@ export const GoogleIcon = ({ size = 20 }) => (
     />
   </svg>
 )
+
+
+/* --------------------------- AGROGRAM 3.0 ikonkalari --------------------------- */
+
+/* Apple logotipi — to'ldirilgan shakl, shuning uchun `fill` ishlatiladi. */
+export const AppleIcon = ({ size = 22, ...rest }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor" {...rest}>
+    <path d="M16.36 12.79c-.02-2.2 1.8-3.26 1.88-3.31-1.02-1.5-2.61-1.7-3.18-1.73-1.35-.14-2.64.8-3.33.8-.69 0-1.75-.78-2.87-.76-1.48.02-2.84.86-3.6 2.18-1.53 2.66-.39 6.6 1.1 8.76.73 1.06 1.6 2.24 2.74 2.2 1.1-.05 1.52-.71 2.85-.71 1.33 0 1.71.71 2.87.69 1.18-.02 1.93-1.08 2.65-2.14.84-1.23 1.18-2.42 1.2-2.48-.03-.01-2.3-.88-2.31-3.5z" />
+    <path d="M14.2 6.3c.6-.74 1.01-1.76.9-2.78-.87.04-1.93.58-2.56 1.31-.56.65-1.05 1.69-.92 2.68.97.08 1.96-.49 2.58-1.21z" />
+  </svg>
+)
+
+export const EyeIcon = (p) => (
+  <Svg {...p}>
+    <path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7-10-7-10-7Z" />
+    <circle cx="12" cy="12" r="3" />
+  </Svg>
+)
+
+export const EyeOffIcon = (p) => (
+  <Svg {...p}>
+    <path d="M10.7 5.1A9.9 9.9 0 0 1 12 5c6.4 0 10 7 10 7a17.6 17.6 0 0 1-2.7 3.7" />
+    <path d="M6.6 6.6A17.5 17.5 0 0 0 2 12s3.6 7 10 7a9.7 9.7 0 0 0 4.5-1.1" />
+    <path d="M9.9 9.9a3 3 0 0 0 4.2 4.2" />
+    <path d="m2 2 20 20" />
+  </Svg>
+)
+
+export const UserPlusIcon = (p) => (
+  <Svg {...p}>
+    <path d="M15 20v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+    <circle cx="8.5" cy="7" r="4" />
+    <path d="M19 8v6" />
+    <path d="M22 11h-6" />
+  </Svg>
+)
+
+export const UserCheckIcon = (p) => (
+  <Svg {...p}>
+    <path d="M15 20v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+    <circle cx="8.5" cy="7" r="4" />
+    <path d="m16 11 2 2 4-4" />
+  </Svg>
+)
+
+export const UsersIcon = (p) => (
+  <Svg {...p}>
+    <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+    <circle cx="9" cy="7" r="4" />
+    <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
+    <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+  </Svg>
+)
+
+export const GridIcon = (p) => (
+  <Svg {...p}>
+    <rect x="3" y="3" width="7" height="7" rx="1.5" />
+    <rect x="14" y="3" width="7" height="7" rx="1.5" />
+    <rect x="3" y="14" width="7" height="7" rx="1.5" />
+    <rect x="14" y="14" width="7" height="7" rx="1.5" />
+  </Svg>
+)
+
+export const LinkIcon = (p) => (
+  <Svg {...p}>
+    <path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7" />
+    <path d="M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7" />
+  </Svg>
+)
+
+export const BugIcon = (p) => (
+  <Svg {...p}>
+    <path d="M8 6a4 4 0 0 1 8 0v2H8Z" />
+    <rect x="8" y="8" width="8" height="12" rx="4" />
+    <path d="M2 12h6" />
+    <path d="M16 12h6" />
+    <path d="m3 6 3 2" />
+    <path d="m21 6-3 2" />
+    <path d="m3 18 3-2" />
+    <path d="m21 18-3-2" />
+  </Svg>
+)

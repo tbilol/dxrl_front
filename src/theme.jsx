@@ -1,17 +1,16 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react'
 
-const STORAGE_KEY = 'agro_auksion_theme'
+import log from './logger.js'
+import { KEYS, readStored, writeStored } from './storage.js'
+
+const STORAGE_KEY = KEYS.theme
 export const THEMES = ['light', 'dark', 'system']
 
 const ThemeContext = createContext(null)
 
 function readSavedTheme() {
-  try {
-    const saved = localStorage.getItem(STORAGE_KEY)
-    if (saved && THEMES.includes(saved)) return saved
-  } catch {
-    /* localStorage o'chirilgan bo'lishi mumkin */
-  }
+  const saved = readStored(STORAGE_KEY)
+  if (saved && THEMES.includes(saved)) return saved
   return 'system'
 }
 
@@ -46,11 +45,8 @@ export function ThemeProvider({ children }) {
     const next = resolve(theme)
     setResolved(next)
     paint(next)
-    try {
-      localStorage.setItem(STORAGE_KEY, theme)
-    } catch {
-      /* e'tiborsiz */
-    }
+    writeStored(STORAGE_KEY, theme)
+    log.front('Mavzu o\'zgardi', { theme, resolved: next })
   }, [theme])
 
   // "Tizim" tanlanganda OS mavzusi o'zgarsa — darhol moslashamiz.
@@ -61,6 +57,7 @@ export function ThemeProvider({ children }) {
       const next = resolve('system')
       setResolved(next)
       paint(next)
+      log.front('Tizim mavzusi o\'zgardi', next)
     }
     mq.addEventListener('change', onChange)
     return () => mq.removeEventListener('change', onChange)

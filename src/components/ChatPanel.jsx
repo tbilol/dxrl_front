@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
+import { useNavigate } from 'react-router-dom'
 import Avatar from './Avatar.jsx'
 import { ArrowLeftIcon, SendIcon } from './Icons.jsx'
 import { errorMessage, getMessages, sendMessage } from '../api.js'
@@ -7,6 +8,7 @@ import { useLanguage } from '../i18n/index.jsx'
 import { bubbleIn, tapSmall } from '../motion.js'
 import useCurrentUser from '../useCurrentUser.js'
 import { formatDayDivider, formatTime, sameDay } from '../utils.js'
+import log from '../logger.js'
 
 const POLL_MS = 5000
 
@@ -19,6 +21,7 @@ const POLL_MS = 5000
 export default function ChatPanel({ conversationId, other, onBack }) {
   const { lang, t } = useLanguage()
   const { user } = useCurrentUser()
+  const navigate = useNavigate()
 
   const [messages, setMessages] = useState([])
   const [draft, setDraft] = useState('')
@@ -31,11 +34,16 @@ export default function ChatPanel({ conversationId, other, onBack }) {
   const load = useCallback(
     async ({ silent } = {}) => {
       try {
+        if (silent) log.chat('Yangi xabarlar tekshirilmoqda...', conversationId)
         const data = await getMessages(conversationId)
         setMessages(data)
-        if (!silent) setAlert('')
+        if (!silent) {
+          setAlert('')
+          log.chat('Suhbat ochildi', { conversationId, messages: data.length })
+        }
       } catch (err) {
         if (!silent) setAlert(errorMessage(err, t))
+        log.chat.error('Xabarlarni yuklab bo\'lmadi', err)
       }
     },
     [conversationId, t],
@@ -68,9 +76,15 @@ export default function ChatPanel({ conversationId, other, onBack }) {
     try {
       const created = await sendMessage(conversationId, content)
       setMessages((prev) => [...prev, created])
+      log.chat('Xabar yuborildi', {
+        to: other?.id,
+        preview: content.slice(0, 40),
+        length: content.length,
+      })
     } catch (err) {
       setAlert(errorMessage(err, t))
       setDraft(content) // matn yo'qolmasin
+      log.chat.error('Xabar yuborilmadi', err)
     } finally {
       setSending(false)
     }
@@ -98,8 +112,16 @@ export default function ChatPanel({ conversationId, other, onBack }) {
           </motion.button>
         )}
 
-        <Avatar name={other?.name} src={other?.avatar_url} size={38} />
-        <span className="name">{other?.name || t('messages.title')}</span>
+        {/* Suhbatdosh — bosilganda uning profiliga o'tadi. */}
+        <button
+          type="button"
+          className="chat-peer"
+          onClick={() => other?.id && navigate(`/profile/${other.id}`)}
+          disabled={!other?.id}
+        >
+          <Avatar name={other?.name} src={other?.avatar_url} size={38} />
+          <span className="name">{other?.name || t('messages.title')}</span>
+        </button>
         <span className="online-dot" aria-hidden="true" />
       </header>
 

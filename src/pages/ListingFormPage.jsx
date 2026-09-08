@@ -31,6 +31,8 @@ import {
   REGIONS,
   regionLabel,
 } from '../utils.js'
+import log from '../logger.js'
+import useLogMount from '../useLogMount.js'
 
 const TOTAL_STEPS = 3
 
@@ -57,6 +59,7 @@ function splitAddress(address) {
 }
 
 export default function ListingFormPage({ kind }) {
+  useLogMount('ListingFormPage')
   const { id } = useParams()
   const navigate = useNavigate()
   const { lang, t } = useLanguage()
@@ -148,7 +151,10 @@ export default function ListingFormPage({ kind }) {
   }
 
   const goNext = () => {
-    if (!validateStep(step)) return
+    if (!validateStep(step)) {
+      log.front('Qadam tekshiruvdan o\'tmadi', { step })
+      return
+    }
     setDir(1)
     setStep((s) => Math.min(TOTAL_STEPS, s + 1))
   }
@@ -179,6 +185,8 @@ export default function ListingFormPage({ kind }) {
       [isAuction ? 'price' : 'offer_price']: moneyToNumber(form.price),
     }
 
+    log.front('Forma yuborildi', { kind, isEdit, ...payload })
+
     setSaving(true)
     try {
       if (isEdit) {
@@ -186,10 +194,12 @@ export default function ListingFormPage({ kind }) {
       } else {
         await (isAuction ? createAuction(payload) : createRequest(payload))
       }
+      log.front(isEdit ? 'E\'lon yangilandi' : 'E\'lon yaratildi', { product: payload.product })
       setDone(true)
       setTimeout(() => navigate(listTo), 1500)
     } catch (err) {
       setAlert(errorMessage(err, t))
+      log.front.error('E\'lonni saqlab bo\'lmadi', err)
       setSaving(false)
     }
   }

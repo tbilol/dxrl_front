@@ -22,12 +22,15 @@ import { spring, tap, tapSmall } from '../motion.js'
 import useCurrentUser from '../useCurrentUser.js'
 import { useIsDesktop } from '../useMediaQuery.js'
 import { formatDate, formatNumber, ROLE_KEYS } from '../utils.js'
+import log from '../logger.js'
+import useLogMount from '../useLogMount.js'
 
 /**
  * Auksion yoki so'rovning to'liq sahifasi.
  * Desktopda: chapda tafsilotlar (60%), o'ngda e'lon egasi, telefon va yozishma (40%).
  */
 export default function ListingDetailPage({ kind }) {
+  useLogMount('ListingDetailPage')
   const { id } = useParams()
   const navigate = useNavigate()
   const { lang, t } = useLanguage()
@@ -44,12 +47,20 @@ export default function ListingDetailPage({ kind }) {
     let active = true
     const fetcher = isAuction ? getAuction : getRequest
     fetcher(id)
-      .then((data) => active && setItem(data))
-      .catch((err) => active && setAlert(errorMessage(err, t)))
+      .then((data) => {
+        if (!active) return
+        setItem(data)
+        log.front("E'lon yuklandi", { id, product: data.product, kind })
+      })
+      .catch((err) => {
+        if (!active) return
+        setAlert(errorMessage(err, t))
+        log.front.error("E'lonni yuklab bo'lmadi", err)
+      })
     return () => {
       active = false
     }
-  }, [id, isAuction, t])
+  }, [id, isAuction, kind, t])
 
   const backTo = isAuction ? '/' : '/sorovlar'
   const price = item ? (isAuction ? item.price : item.offer_price) : null
@@ -62,6 +73,11 @@ export default function ListingDetailPage({ kind }) {
     setOpening(true)
     try {
       const conv = await openConversation(item.owner_id)
+      log.chat('Suhbat ochildi', {
+        conversationId: conv.id,
+        with: item.owner_id,
+        inline: isDesktop,
+      })
       if (isDesktop) {
         setChatId(conv.id)
         setOpening(false)
@@ -70,6 +86,7 @@ export default function ListingDetailPage({ kind }) {
       }
     } catch (err) {
       setAlert(errorMessage(err, t))
+      log.chat.error("Suhbatni ochib bo'lmadi", err)
       setOpening(false)
     }
   }

@@ -1,8 +1,9 @@
 /** JWT tokenni localStorage'da saqlash va o'qish uchun yordamchilar. */
 
-const TOKEN_KEY = 'agro_auksion_token'
-/** Google'gacha ishlatilgan eski kalit — chiqishda u ham tozalanadi. */
-const LEGACY_PROFILE_KEY = 'agro_auksion_profile_id'
+import log from './logger.js'
+import { KEYS, LEGACY_KEYS, readStored, removeStored, writeStored } from './storage.js'
+
+const TOKEN_KEY = KEYS.token
 
 /** JWT'ning payload qismini o'qiydi (imzo tekshirilmaydi — buni backend qiladi). */
 export function decodeToken(token) {
@@ -21,9 +22,10 @@ function isExpired(token) {
 }
 
 export function getToken() {
-  const token = localStorage.getItem(TOKEN_KEY)
+  const token = readStored(TOKEN_KEY)
   if (!token) return null
   if (isExpired(token)) {
+    log.auth('Token muddati tugagan')
     clearToken()
     return null
   }
@@ -31,12 +33,16 @@ export function getToken() {
 }
 
 export function setToken(token) {
-  localStorage.setItem(TOKEN_KEY, token)
+  writeStored(TOKEN_KEY, token)
+  // Tokenning o'zi hech qachon logga yozilmaydi — faqat kimga tegishli ekani.
+  log.auth('Token saqlandi', { userId: decodeToken(token)?.sub })
+  log.store('Token localStorage ga yozildi')
 }
 
 export function clearToken() {
-  localStorage.removeItem(TOKEN_KEY)
-  localStorage.removeItem(LEGACY_PROFILE_KEY)
+  removeStored(TOKEN_KEY)
+  LEGACY_KEYS.forEach(removeStored)
+  log.auth('Chiqish — token o\'chirildi')
 }
 
 export function isLoggedIn() {
@@ -53,6 +59,7 @@ export function consumeTokenFromUrl() {
   const token = params.get('token')
   if (!token) return
 
+  log.auth('OAuth qaytdi — URL dan token olindi')
   setToken(token)
   params.delete('token')
   const query = params.toString()
