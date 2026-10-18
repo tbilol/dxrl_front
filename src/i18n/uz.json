@@ -162,8 +162,6 @@
   "profile.edit": "Profilni tahrirlash",
   "profile.saved": "Profil saqlandi",
   "profile.noPhone": "Telefon raqamingiz ko'rsatilmagan. E'lon joylashtirishdan oldin uni qo'shing.",
-  "profile.myOffers": "Mening takliflarim",
-  "profile.myRequests": "Mening so'rovlarim",
   "profile.myListings": "Mening e'lonlarim",
   "profile.noOffers": "Sizda hali takliflar yo'q",
   "profile.noRequests": "Sizda hali so'rovlar yo'q",
@@ -412,5 +410,15 @@
   "listing.videoReplace": "Videoni almashtirish",
   "limit.title": "Faol e'lonlar chegarasi",
   "limit.text": "Har bir doskada ko'pi bilan {limit} ta faol e'lon bo'lishi mumkin. Yangisini joylash uchun eskisini yoping yoki o'chiring.",
-  "limit.manage": "E'lonlarimni ko'rish"
+  "limit.manage": "E'lonlarimni ko'rish",
+  "profile.offers": "Takliflar",
+  "profile.requests": "So'rovlar",
+  "profile.savedTab": "Saqlanganlar",
+  "profile.noSaved": "Saqlangan e'lonlar yo'q",
+  "profile.noSavedHint": "E'londagi yurakchani bosing — u shu yerda paydo bo'ladi.",
+  "limit.usage": "{count} / {limit} ta faol e'lon",
+  "listing.closeShort": "Yopish",
+  "listing.reopenShort": "Faollashtirish",
+  "listing.delete": "E'lonni o'chirish",
+  "listing.deleteHint": "E'lon butunlay o'chiriladi. Faqat vaqtincha yashirish uchun uni yoping."
 }

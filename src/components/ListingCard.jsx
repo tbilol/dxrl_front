@@ -2,11 +2,21 @@ import { motion } from 'framer-motion'
 import { useNavigate } from 'react-router-dom'
 import Avatar from './Avatar.jsx'
 import CoverImage from './listing/CoverImage.jsx'
-import { EditIcon, MapPinIcon, PhoneIcon, ScaleIcon, TrashIcon, UserIcon, VideoIcon } from './Icons.jsx'
+import {
+  EditIcon,
+  HeartIcon,
+  MapPinIcon,
+  PhoneIcon,
+  ScaleIcon,
+  TrashIcon,
+  UserIcon,
+  VideoIcon,
+} from './Icons.jsx'
 import { localizeProduct } from '../data/products.js'
 import { useLanguage } from '../i18n/index.jsx'
 import { cardHover, cardTap, listItem, tapSmall } from '../motion.js'
 import { imagesOf, useListingImages } from '../listings/images.js'
+import { isFavorite, toggleFavorite, useFavorites } from '../listings/favorites.js'
 import { formatDayShort, formatNumber, parseDate } from '../utils.js'
 
 /**
@@ -14,13 +24,15 @@ import { formatDayShort, formatNumber, parseDate } from '../utils.js'
  *
  * Tuzilishi: yuqorida rasm (taxminan 45%), pastda ma'lumot (55%) —
  * nomi, narxi, miqdori, manzili; eng pastda e'lon egasi va sanasi.
- * `onEdit`/`onDelete` — "mening e'lonlarim" ro'yxatidagi qo'shimcha qator.
+ * `onEdit`/`onToggleStatus`/`onDelete` — "mening e'lonlarim" ro'yxatidagi
+ * qo'shimcha qator. Boshqa hollarda rasm ustida "saqlash" (yurakcha) bor.
  */
-export default function ListingCard({ item, kind, onEdit, onDelete }) {
+export default function ListingCard({ item, kind, onEdit, onToggleStatus, onDelete }) {
   const navigate = useNavigate()
   const { lang, t } = useLanguage()
   // Sessiyadagi rasmlarni ham kuzatamiz (hozircha server rasm bermaydi).
   useListingImages()
+  useFavorites()
   const cover = imagesOf(item)[0] ?? null
 
   const isOffer = kind === 'offer'
@@ -31,7 +43,8 @@ export default function ListingCard({ item, kind, onEdit, onDelete }) {
   // Narx bazada kg uchun saqlanadi; kartada ham, tafsilotda ham tonna bo'yicha.
   const price = isOffer ? item.price : item.offer_price
   const to = isOffer ? `/takliflar/${item.id}` : `/sorovlar/${item.id}`
-  const showActions = Boolean(onEdit || onDelete)
+  const showActions = Boolean(onEdit || onToggleStatus || onDelete)
+  const saved = isFavorite(kind, item.id)
   // Yopilgan e'lon faqat egasining profilida ko'rinadi (doskada emas).
   const isClosed = item.status === 'closed'
 
@@ -65,6 +78,23 @@ export default function ListingCard({ item, kind, onEdit, onDelete }) {
             <span className="new-badge lcard-new is-closed">{t('listing.statusClosed')}</span>
           ) : (
             isNew && <span className="new-badge lcard-new">{t('listing.new')}</span>
+          )}
+          {/* Saqlash — karta bosilishi (tafsilotga o'tish) bilan to'qnashmasin. */}
+          {!showActions && (
+            <motion.button
+              type="button"
+              className={`lcard-save${saved ? ' is-saved' : ''}`}
+              whileTap={tapSmall}
+              onClick={(e) => {
+                e.stopPropagation()
+                toggleFavorite(kind, item.id)
+              }}
+              onKeyDown={(e) => e.stopPropagation()}
+              aria-pressed={saved}
+              aria-label={t(saved ? 'listing.unsave' : 'listing.save')}
+            >
+              <HeartIcon size={15} filled={saved} />
+            </motion.button>
           )}
           {/* MOCK: e'londagi qisqa video (fayl hali yuklanmaydi). */}
           {item.has_video && (
@@ -145,6 +175,16 @@ export default function ListingCard({ item, kind, onEdit, onDelete }) {
               onClick={() => onEdit(item)}
             >
               <EditIcon size={14} /> {t('common.edit')}
+            </motion.button>
+          )}
+          {onToggleStatus && (
+            <motion.button
+              type="button"
+              className="btn btn-ghost btn-xs"
+              whileTap={tapSmall}
+              onClick={() => onToggleStatus(item)}
+            >
+              {t(isClosed ? 'listing.reopenShort' : 'listing.closeShort')}
             </motion.button>
           )}
           {onDelete && (

@@ -6,7 +6,8 @@ import { KEYS, readStored, writeStored } from '../storage.js'
  * Saqlangan e'lonlar.
  *
  * Ular qurilmada (localStorage) saqlanadi — bu haqiqatan ishlaydi, lekin
- * faqat shu brauzerda.
+ * faqat shu brauzerda. Kalit — `kind:id` (masalan `offer:42`): taklif va
+ * so'rov ID lari backendda bir-biriga to'g'ri kelib qolishi mumkin.
  * TODO: Connect to backend — serverda sevimlilar jadvali paydo bo'lgach,
  * ro'yxat profil bilan birga sinxronlanadi.
  */
@@ -15,7 +16,10 @@ function read() {
   try {
     const raw = readStored(KEYS.favorites)
     const list = raw ? JSON.parse(raw) : []
-    return Array.isArray(list) ? list.filter((id) => typeof id === 'string') : []
+    // Eski formatdagi (turisiz) yozuvlar tashlab yuboriladi.
+    return Array.isArray(list)
+      ? list.filter((key) => typeof key === 'string' && /^(offer|request):/.test(key))
+      : []
   } catch {
     return []
   }
@@ -40,14 +44,20 @@ export function useFavorites() {
   return ids
 }
 
-export function isFavorite(id) {
-  return ids.has(id)
+/** `kind` — 'offer' yoki 'request'. */
+export function favoriteKey(kind, id) {
+  return `${kind}:${id}`
 }
 
-export function toggleFavorite(id) {
+export function isFavorite(kind, id) {
+  return ids.has(favoriteKey(kind, id))
+}
+
+export function toggleFavorite(kind, id) {
   if (!id) return
-  if (ids.has(id)) ids.delete(id)
-  else ids.add(id)
+  const key = favoriteKey(kind, id)
+  if (ids.has(key)) ids.delete(key)
+  else ids.add(key)
   writeStored(KEYS.favorites, JSON.stringify([...ids]))
   emit()
 }

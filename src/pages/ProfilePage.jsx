@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
-import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
+import { useLocation, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import Avatar from '../components/Avatar.jsx'
 import FollowButton from '../components/FollowButton.jsx'
 import Header from '../components/Header.jsx'
@@ -14,6 +14,7 @@ import Toast from '../components/Toast.jsx'
 import { ListingSkeleton } from '../components/Skeletons.jsx'
 import {
   ClipboardIcon,
+  HeartIcon,
   MessageIcon,
   SearchIcon,
   SettingsIcon,
@@ -27,11 +28,15 @@ import {
   getProfile,
   getRequests,
   openConversation,
+  updateOffer,
+  updateRequest,
 } from '../services/index.js'
 import { useT } from '../i18n/index.jsx'
 import { listContainerFor, spring, tapSmall } from '../motion.js'
 import useCurrentUser from '../currentUser.jsx'
 import { filterListings } from '../utils.js'
+import { countActive, LISTING_LIMIT } from '../limits.js'
+import { favoriteKey, useFavorites } from '../listings/favorites.js'
 import log from '../logger.js'
 import useIncrementalList from '../useIncrementalList.js'
 import useLogMount from '../useLogMount.js'
@@ -54,12 +59,21 @@ export default function ProfilePage() {
   const [query, setQuery] = useState('')
   const [offers, setOffers] = useState(null)
   const [requests, setRequests] = useState(null)
+  // Saqlangan e'lonlar (faqat o'z profilida) — doskalardan olinadi.
+  const [saved, setSaved] = useState(null)
   const [followers, setFollowers] = useState(0)
   const [alert, setAlert] = useState('')
-  const [toast, setToast] = useState('')
+  // E'lon tafsilotidan o'chirib qaytilganda xabar shu yerda ko'rsatiladi.
+  const location = useLocation()
+  const [toast, setToast] = useState(location.state?.toast ?? '')
   const [opening, setOpening] = useState(false)
   // O'chirishni tasdiqlash oynasi uchun kutilayotgan e'lon.
   const [pendingDelete, setPendingDelete] = useState(null)
+
+  useEffect(() => {
+    if (!location.state?.toast) return
+    navigate(location.pathname, { replace: true, state: null })
+  }, [location.state, location.pathname, navigate])
 
   // Google/Apple xatolik bilan qaytargan bo'lsa (?auth_error=...) — ko'rsatamiz.
   useEffect(() => {
@@ -86,6 +100,11 @@ export default function ProfilePage() {
   const profile = userId ? other : me
   const isOwn = Boolean(profile?.is_me)
 
+  // "Saqlanganlar" tabi faqat o'z profilida bor.
+  useEffect(() => {
+    if (profile && !isOwn && tab === 'saved') setTab('offers')
+  }, [profile, isOwn, tab])
+
   useEffect(() => {
     if (profile) setFollowers(profile.followers_count ?? 0)
   }, [profile])
@@ -109,6 +128,51 @@ export default function ProfilePage() {
   useEffect(() => {
     loadListings()
   }, [loadListings])
+
+  const favorites = useFavorites()
+  const favKey = [...favorites].join(',')
+
+  /* "Saqlanganlar" — faqat doskadagi (faol) e'lonlar; yopilgani yoki
+     o'chirilgani ro'yxatdan o'z-o'zidan tushib qoladi. */
+  useEffect(() => {
+    if (tab !== 'saved') return undefined
+    let active = true
+    Promise.all([getOffers(), getRequests()])
+      .then(([a, r]) => {
+        if (!active) return
+        const keys = new Set(favKey ? favKey.split(',') : [])
+        setSaved(
+          [
+            ...a.map((it) => ({ ...it, kind: 'offer' })),
+            ...r.map((it) => ({ ...it, kind: 'request' })),
+          ].filter((it) => keys.has(favoriteKey(it.kind, it.id))),
+        )
+      })
+      .catch((err) => {
+        if (!active) return
+        setAlert(errorMessage(err, t))
+        setSaved([])
+      })
+    return () => {
+      active = false
+    }
+  }, [tab, favKey, t])
+
+  /** E'lonni yopish / qayta faollashtirish (chegara faqat faollarni sanaydi). */
+  const toggleStatus = async (item, kind) => {
+    const next = item.status === 'closed' ? 'active' : 'closed'
+    try {
+      const updated = await (kind === 'offer' ? updateOffer : updateRequest)(item.id, {
+        status: next,
+      })
+      const patch = (prev) => prev.map((x) => (x.id === item.id ? { ...x, ...updated } : x))
+      if (kind === 'offer') setOffers(patch)
+      else setRequests(patch)
+      setToast(t(next === 'closed' ? 'listing.closedToast' : 'listing.reopenedToast'))
+    } catch (err) {
+      setAlert(errorMessage(err, t))
+    }
+  }
 
   const remove = async (item, kind) => {
     setPendingDelete(null)
@@ -147,14 +211,18 @@ export default function ProfilePage() {
    * aks holda ular ba'zi renderlarda chaqirilib, ba'zilarida chaqirilmay
    * qolardi (React hook qoidasi buziladi).
    */
-  const list = tab === 'offers' ? offers : requests
+  const list = tab === 'offers' ? offers : tab === 'requests' ? requests : saved
   const kind = tab === 'offers' ? 'offer' : 'request'
   const searching = query.trim().length > 0
-  // Qidiruv mijoz tomonida — ochiq tabdagi e'lonlar mahsulot nomi bo'yicha filtrlanadi.
-  const shown = useMemo(
-    () => (list === null ? null : filterListings(list, query, ['product'])),
-    [list, query],
-  )
+  // Qidiruv mijoz tomonida — ochiq tabdagi e'lonlar mahsulot nomi bo'yicha
+  // filtrlanadi; faol e'lonlar yopilganlardan oldin turadi.
+  const shown = useMemo(() => {
+    if (list === null) return null
+    const found = filterListings(list, query, ['product'])
+    return [...found].sort((a, b) => (a.status === 'closed') - (b.status === 'closed'))
+  }, [list, query])
+  // O'z profilida: shu tabdagi faol e'lonlar soni / chegara.
+  const activeCount = tab === 'saved' ? 0 : countActive(list, profile?.id)
   const rendered = useIncrementalList(shown)
 
   /* ------------------------- Kirmagan holat (o'z profili) ------------------------ */
@@ -331,8 +399,9 @@ export default function ProfilePage() {
           <div>
             <div className="tabs" role="tablist">
               {[
-                { id: 'offers', label: t('profile.myOffers'), Icon: StoreIcon },
-                { id: 'requests', label: t('profile.myRequests'), Icon: ClipboardIcon },
+                { id: 'offers', label: t('profile.offers'), Icon: StoreIcon },
+                { id: 'requests', label: t('profile.requests'), Icon: ClipboardIcon },
+                ...(isOwn ? [{ id: 'saved', label: t('profile.savedTab'), Icon: HeartIcon }] : []),
               ].map((opt) => (
                 <button
                   key={opt.id}
@@ -359,6 +428,15 @@ export default function ProfilePage() {
 
             <SearchBar value={query} onChange={setQuery} placeholder={t('search.profile')} />
 
+            {/* O'z e'lonlari: doskadagi chegaradan qanchasi band. */}
+            {isOwn && tab !== 'saved' && list !== null && list.length > 0 && (
+              <div className="list-bar">
+                <span className={`list-count${activeCount >= LISTING_LIMIT ? ' is-full' : ''}`}>
+                  {t('limit.usage', { count: activeCount, limit: LISTING_LIMIT })}
+                </span>
+              </div>
+            )}
+
             {/* Tab almashuvi — faqat so'nish. Ilgari `y` ham surilardi, lekin
                 tablar balandligi har xil: kontent siljib, keyin qayta joylashib
                 sakrardi. Endi bir joyda tinch almashadi. */}
@@ -384,10 +462,19 @@ export default function ProfilePage() {
                   />
                 )}
 
-                {list !== null && list.length === 0 && !searching && (
+                {list !== null && list.length === 0 && !searching && tab === 'saved' && (
+                  <EmptyState
+                    icon={HeartIcon}
+                    title={t('profile.noSaved')}
+                    text={t('profile.noSavedHint')}
+                  />
+                )}
+
+                {list !== null && list.length === 0 && !searching && tab !== 'saved' && (
                   <EmptyState
                     icon={tab === 'offers' ? StoreIcon : ClipboardIcon}
                     title={t('profile.noListings')}
+                    text={isOwn ? t(tab === 'offers' ? 'offers.emptyHint' : 'requests.emptyHint') : undefined}
                     action={
                       isOwn ? (
                         <motion.button
@@ -414,11 +501,11 @@ export default function ProfilePage() {
                   >
                     {rendered.map((item) => (
                       <ListingCard
-                        key={item.id}
+                        key={`${item.kind ?? kind}:${item.id}`}
                         item={item}
-                        kind={kind}
+                        kind={tab === 'saved' ? item.kind : kind}
                         onEdit={
-                          isOwn
+                          isOwn && tab !== 'saved'
                             ? (it) =>
                                 navigate(
                                   kind === 'offer'
@@ -427,7 +514,14 @@ export default function ProfilePage() {
                                 )
                             : undefined
                         }
-                        onDelete={isOwn ? (it) => setPendingDelete({ item: it, kind }) : undefined}
+                        onToggleStatus={
+                          isOwn && tab !== 'saved' ? (it) => toggleStatus(it, kind) : undefined
+                        }
+                        onDelete={
+                          isOwn && tab !== 'saved'
+                            ? (it) => setPendingDelete({ item: it, kind })
+                            : undefined
+                        }
                       />
                     ))}
                   </motion.div>

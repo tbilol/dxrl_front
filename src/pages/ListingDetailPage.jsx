@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { motion } from 'framer-motion'
-import { useNavigate, useParams } from 'react-router-dom'
+import { useLocation, useNavigate, useParams } from 'react-router-dom'
 import Avatar from '../components/Avatar.jsx'
 import Header from '../components/Header.jsx'
 import PageShell from '../components/PageShell.jsx'
@@ -24,6 +24,8 @@ import {
   TagIcon,
 } from '../components/Icons.jsx'
 import {
+  deleteOffer,
+  deleteRequest,
   errorMessage,
   getOffer,
   getOffers,
@@ -60,6 +62,7 @@ export default function ListingDetailPage({ kind }) {
   useLogMount('ListingDetailPage')
   const { id } = useParams()
   const navigate = useNavigate()
+  const location = useLocation()
   const { lang, t } = useLanguage()
   const { user } = useCurrentUser()
   useListingImages()
@@ -74,8 +77,16 @@ export default function ListingDetailPage({ kind }) {
   const [opening, setOpening] = useState(false)
   const [phoneShown, setPhoneShown] = useState(false)
   const [toggling, setToggling] = useState(false)
-  const [toast, setToast] = useState('')
+  // Tahrirlash formasi "E'lon yangilandi" xabarini shu yerga yuboradi.
+  const [toast, setToast] = useState(location.state?.toast ?? '')
   const [reporting, setReporting] = useState(false)
+  const [deleting, setDeleting] = useState(false)
+
+  useEffect(() => {
+    if (!location.state?.toast) return
+    // Xabar bir marta ko'rsatiladi: orqaga qaytilsa takrorlanmaydi.
+    navigate(location.pathname, { replace: true, state: null })
+  }, [location.state, location.pathname, navigate])
 
   useEffect(() => {
     let active = true
@@ -177,6 +188,17 @@ export default function ListingDetailPage({ kind }) {
     }
   }
 
+  const remove = async () => {
+    setDeleting(false)
+    try {
+      await (isOffer ? deleteOffer : deleteRequest)(item.id)
+      log.front("E'lon o'chirildi", { id: item.id, kind })
+      navigate('/profil', { replace: true, state: { toast: t('listing.deleted') } })
+    } catch (err) {
+      setAlert(errorMessage(err, t))
+    }
+  }
+
   const report = () => {
     setReporting(false)
     // TODO: Connect to backend — shikoyatlar uchun endpoint yo'q.
@@ -210,7 +232,7 @@ export default function ListingDetailPage({ kind }) {
     )
   }
 
-  const saved = isFavorite(item.id)
+  const saved = isFavorite(kind, item.id)
   const created = parseDate(item.created_at)
 
   /* Aloqa tugmalari bitta marta tayyorlanadi: mobilda pastda qotgan
@@ -300,7 +322,7 @@ export default function ListingDetailPage({ kind }) {
               type="button"
               className={`topbar-btn${saved ? ' is-saved' : ''}`}
               whileTap={tapSmall}
-              onClick={() => toggleFavorite(item.id)}
+              onClick={() => toggleFavorite(kind, item.id)}
               aria-pressed={saved}
               aria-label={t(saved ? 'listing.unsave' : 'listing.save')}
             >
@@ -445,10 +467,16 @@ export default function ListingDetailPage({ kind }) {
               </section>
             )}
 
-            {/* ------------------------ Shikoyat qilish ----------------------- */}
-            <button type="button" className="pd-report" onClick={() => setReporting(true)}>
-              {t('listing.report')}
-            </button>
+            {/* ----------- O'chirish (egasi) yoki shikoyat (boshqalar) ----------- */}
+            {isMine ? (
+              <button type="button" className="pd-report" onClick={() => setDeleting(true)}>
+                {t('listing.delete')}
+              </button>
+            ) : (
+              <button type="button" className="pd-report" onClick={() => setReporting(true)}>
+                {t('listing.report')}
+              </button>
+            )}
           </div>
         </div>
       </main>
@@ -464,6 +492,16 @@ export default function ListingDetailPage({ kind }) {
         danger
         onConfirm={report}
         onCancel={() => setReporting(false)}
+      />
+
+      <ConfirmDialog
+        open={deleting}
+        title={t('common.confirmDelete')}
+        text={t('listing.deleteHint')}
+        confirmLabel={t('common.delete')}
+        danger
+        onConfirm={remove}
+        onCancel={() => setDeleting(false)}
       />
 
       <Toast message={toast} onDone={() => setToast('')} />

@@ -1184,6 +1184,11 @@ img {
   font-variant-numeric: tabular-nums;
 }
 
+/* Faol e'lonlar chegarasi to'lgan. */
+.list-count.is-full {
+  color: var(--danger);
+}
+
 /*
  * Karta: yuqorida rasm (~45%), pastda ma'lumot (~55%).
  * Ikkalasi ham bir xil balandlikda — to'rdagi qatorlar tekis turadi.
@@ -5412,6 +5417,27 @@ button.set-row.is-danger:active:not(:disabled) {
 }
 
 /* Kartadagi video belgisi. */
+/* Saqlash tugmasi — rasmning yuqori o'ng burchagida. */
+.lcard-save {
+  position: absolute;
+  top: var(--s-2);
+  right: var(--s-2);
+  display: inline-grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border: 0;
+  border-radius: var(--r-full);
+  background: var(--scrim);
+  color: #fff;
+  cursor: pointer;
+}
+
+.lcard-save.is-saved {
+  color: var(--danger);
+  background: var(--surface);
+}
+
 .lcard-video {
   position: absolute;
   right: var(--s-2);

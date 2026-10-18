@@ -162,8 +162,6 @@
   "profile.edit": "Редактировать профиль",
   "profile.saved": "Профиль сохранён",
   "profile.noPhone": "Номер телефона не указан. Добавьте его перед размещением объявления.",
-  "profile.myOffers": "Мои предложения",
-  "profile.myRequests": "Мои запросы",
   "profile.myListings": "Мои объявления",
   "profile.noOffers": "У вас пока нет предложений",
   "profile.noRequests": "У вас пока нет запросов",
@@ -412,5 +410,15 @@
   "listing.videoReplace": "Заменить видео",
   "limit.title": "Лимит активных объявлений",
   "limit.text": "На каждой доске может быть не больше {limit} активных объявлений. Чтобы разместить новое, закройте или удалите старое.",
-  "limit.manage": "Мои объявления"
+  "limit.manage": "Мои объявления",
+  "profile.offers": "Предложения",
+  "profile.requests": "Запросы",
+  "profile.savedTab": "Избранное",
+  "profile.noSaved": "Нет сохранённых объявлений",
+  "profile.noSavedHint": "Нажмите на сердечко в объявлении — оно появится здесь.",
+  "limit.usage": "{count} / {limit} активных",
+  "listing.closeShort": "Закрыть",
+  "listing.reopenShort": "Активировать",
+  "listing.delete": "Удалить объявление",
+  "listing.deleteHint": "Объявление будет удалено навсегда. Чтобы просто скрыть его, закройте объявление."
 }

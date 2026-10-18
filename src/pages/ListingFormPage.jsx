@@ -254,8 +254,10 @@ export default function ListingFormPage({ kind }) {
       }
 
       log.front(isEdit ? 'E\'lon yangilandi' : 'E\'lon yaratildi', { product: payload.product })
-      // Ro'yxatga qaytamiz va u yerda muvaffaqiyat xabari ko'rsatiladi.
-      navigate(listTo, {
+      // Yangi e'lon — doskaga, tahrirlangan e'lon — o'z sahifasiga qaytamiz;
+      // muvaffaqiyat xabari o'sha yerda ko'rsatiladi.
+      const detailTo = isOffer ? `/takliflar/${savedId}` : `/sorovlar/${savedId}`
+      navigate(isEdit ? detailTo : listTo, {
         replace: true,
         state: { toast: t(isEdit ? 'listing.updated' : 'listing.created') },
       })

@@ -159,6 +159,16 @@ export default function ListingListPage({ kind }) {
               icon={isOffer ? StoreIcon : ClipboardIcon}
               title={t(isOffer ? 'offers.empty' : 'requests.empty')}
               text={t(isOffer ? 'offers.emptyHint' : 'requests.emptyHint')}
+              action={
+                <motion.button
+                  type="button"
+                  className="btn btn-primary"
+                  whileTap={tapSmall}
+                  onClick={startNew}
+                >
+                  {newLabel}
+                </motion.button>
+              }
             />
           )}
 
