@@ -6,14 +6,10 @@ import FormInput from '../components/FormInput.jsx'
 import PasswordInput from '../components/PasswordInput.jsx'
 import PageShell from '../components/PageShell.jsx'
 import { AppleIcon, CheckIcon, GoogleIcon } from '../components/Icons.jsx'
-import {
-  APPLE_LOGIN_URL,
-  errorMessage,
-  GOOGLE_LOGIN_URL,
-  phoneLogin,
-  phoneRegister,
-} from '../api.js'
+import { errorMessage, phoneLogin, phoneRegister } from '../services/index.js'
 import { setToken } from '../auth.js'
+import useCurrentUser from '../currentUser.jsx'
+import useSocialAuth from '../useSocialAuth.js'
 import { useT } from '../i18n/index.jsx'
 import { spring, stepVariants, tap, tapSmall } from '../motion.js'
 import { formatPhoneInput, isPhoneComplete } from '../utils.js'
@@ -28,6 +24,8 @@ export default function PhoneAuthPage() {
   useLogMount('PhoneAuthPage')
   const navigate = useNavigate()
   const t = useT()
+  const { reload } = useCurrentUser()
+  const { busy: socialBusy, signIn } = useSocialAuth()
 
   const [mode, setMode] = useState('login') // 'login' | 'register'
   const [form, setForm] = useState(EMPTY)
@@ -92,18 +90,14 @@ export default function PhoneAuthPage() {
         userId: data.profile?.id,
       })
       setToken(data.access_token)
-      // To'liq qayta yuklash — useCurrentUser yangi token bilan qaytadan o'qiydi.
-      window.location.assign('/profil')
+      // Profil yangi token bilan qayta o'qiladi (sahifa qayta yuklanmaydi).
+      await reload()
+      navigate('/profil', { replace: true })
     } catch (err) {
       setAlert(errorMessage(err, t))
       log.auth.error(isRegister ? "Ro'yxatdan o'tib bo'lmadi" : 'Kirib bo\'lmadi', err)
       setBusy(false)
     }
-  }
-
-  const go = (provider, url) => () => {
-    log.auth(`${provider} orqali kirish boshlandi`, url)
-    window.location.href = url
   }
 
   return (
@@ -124,7 +118,7 @@ export default function PhoneAuthPage() {
 
         <div className="form-card">
           {/* --------------------------- Kirish / Ro'yxat -------------------------- */}
-          <div className="segment" role="tablist">
+          <div className="tabs" role="tablist">
             {[
               { id: 'login', label: t('auth.tabLogin') },
               { id: 'register', label: t('auth.tabRegister') },
@@ -134,11 +128,11 @@ export default function PhoneAuthPage() {
                 type="button"
                 role="tab"
                 aria-selected={mode === opt.id}
-                className={`segment-btn${mode === opt.id ? ' active' : ''}`}
+                className={`tab${mode === opt.id ? ' active' : ''}`}
                 onClick={() => switchMode(opt.id)}
               >
                 {mode === opt.id && (
-                  <motion.span layoutId="auth-ind" className="segment-ind" transition={spring} />
+                  <motion.span layoutId="auth-tab" className="tab-ind" transition={spring} />
                 )}
                 <span>{opt.label}</span>
               </button>
@@ -208,7 +202,7 @@ export default function PhoneAuthPage() {
             <motion.button
               type="submit"
               className="btn btn-primary"
-              style={{ marginTop: 'var(--sp-4)' }}
+              style={{ marginTop: 'var(--s-4)' }}
               whileTap={tap}
               disabled={busy}
             >
@@ -230,9 +224,10 @@ export default function PhoneAuthPage() {
             type="button"
             className="btn btn-google"
             whileTap={tapSmall}
-            onClick={go('Google', GOOGLE_LOGIN_URL)}
+            onClick={() => signIn('google')}
+            disabled={Boolean(socialBusy)}
           >
-            <GoogleIcon size={20} />
+            {socialBusy === 'google' ? <span className="spinner dark" /> : <GoogleIcon size={20} />}
             {t('auth.withGoogle')}
           </motion.button>
 
@@ -240,9 +235,10 @@ export default function PhoneAuthPage() {
             type="button"
             className="btn btn-apple"
             whileTap={tapSmall}
-            onClick={go('Apple (iCloud)', APPLE_LOGIN_URL)}
+            onClick={() => signIn('apple')}
+            disabled={Boolean(socialBusy)}
           >
-            <AppleIcon size={20} />
+            {socialBusy === 'apple' ? <span className="spinner" /> : <AppleIcon size={20} />}
             {t('auth.withApple')}
           </motion.button>
         </div>

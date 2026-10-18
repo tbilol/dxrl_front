@@ -17,13 +17,41 @@ function Svg({ size = 22, children, ...rest }) {
   )
 }
 
-export const GavelIcon = (p) => (
+/* Bozor rastasi — dehqon takliflari bo'limi. */
+export const StoreIcon = (p) => (
   <Svg {...p}>
-    <path d="m14 13-8.5 8.5a2.12 2.12 0 1 1-3-3L11 10" />
-    <path d="m16 16 6-6" />
-    <path d="m8 8 6-6" />
-    <path d="m9 7 8 8" />
-    <path d="m21 11-8-8" />
+    <path d="M3 9.5 4.6 4.6A1 1 0 0 1 5.55 4h12.9a1 1 0 0 1 .95.6L21 9.5" />
+    <path d="M3 9.5h18v1a3 3 0 0 1-6 0 3 3 0 0 1-6 0 3 3 0 0 1-6 0z" />
+    <path d="M5 13.4V20h14v-6.6" />
+    <path d="M9.5 20v-4.2h5V20" />
+  </Svg>
+)
+
+/* So'rovlar — xaridor ro'yxati. */
+export const ClipboardIcon = (p) => (
+  <Svg {...p}>
+    <path d="M9 3.5h6a1 1 0 0 1 1 1V6H8V4.5a1 1 0 0 1 1-1z" />
+    <path d="M16 5h2a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h2" />
+    <path d="M8.5 12h7" />
+    <path d="M8.5 16h4.5" />
+  </Svg>
+)
+
+/* Bozor ko'rsatkichlari — o'sish chizig'i. */
+export const TrendIcon = (p) => (
+  <Svg {...p}>
+    <path d="M3 17.5 9 11l4 4 7.5-7.5" />
+    <path d="M15 7.5h5.5V13" />
+  </Svg>
+)
+
+/* Bargli belgi — mahsulot yorlig'i uchun kichik ikonka. */
+export const SproutIcon = (p) => (
+  <Svg {...p}>
+    <path d="M7 20h10" />
+    <path d="M12 20v-8" />
+    <path d="M12 12C12 8.7 9.5 6 6 6c0 3.3 2.5 6 6 6z" />
+    <path d="M12 12c0-3 2.2-5.5 5.5-5.5C17.5 9.5 15 12 12 12z" />
   </Svg>
 )
 
@@ -93,6 +121,12 @@ export const ArrowRightIcon = (p) => (
 export const ChevronRightIcon = (p) => (
   <Svg {...p}>
     <polyline points="9 18 15 12 9 6" />
+  </Svg>
+)
+
+export const ChevronDownIcon = (p) => (
+  <Svg {...p}>
+    <polyline points="6 9 12 15 18 9" />
   </Svg>
 )
 
@@ -384,5 +418,351 @@ export const BugIcon = (p) => (
     <path d="m21 6-3 2" />
     <path d="m3 18 3-2" />
     <path d="m21 18-3-2" />
+  </Svg>
+)
+
+/* ------------------------- Sozlamalar bo'limlari ------------------------- */
+
+/* Bildirishnomalar — qo'ng'iroq. */
+export const BellIcon = (p) => (
+  <Svg {...p}>
+    <path d="M18 9a6 6 0 1 0-12 0c0 5-2 6.5-2 6.5h16S18 14 18 9" />
+    <path d="M13.7 19.5a2 2 0 0 1-3.4 0" />
+  </Svg>
+)
+
+/* Maxfiylik — qalqon. */
+export const ShieldIcon = (p) => (
+  <Svg {...p}>
+    <path d="M12 3 5 6v5.5c0 4.4 3 8.1 7 9.5 4-1.4 7-5.1 7-9.5V6z" />
+  </Svg>
+)
+
+/* Ma'lumotlar — saqlash bazasi. */
+export const DatabaseIcon = (p) => (
+  <Svg {...p}>
+    <ellipse cx="12" cy="6" rx="7.5" ry="3" />
+    <path d="M4.5 6v6c0 1.7 3.4 3 7.5 3s7.5-1.3 7.5-3V6" />
+    <path d="M4.5 12v6c0 1.7 3.4 3 7.5 3s7.5-1.3 7.5-3v-6" />
+  </Svg>
+)
+
+/* Ilova haqida — ma'lumot belgisi. */
+export const InfoIcon = (p) => (
+  <Svg {...p}>
+    <circle cx="12" cy="12" r="9" />
+    <path d="M12 11v5" />
+    <path d="M12 7.75h.01" />
+  </Svg>
+)
+
+/* Parol — kalit. */
+export const KeyIcon = (p) => (
+  <Svg {...p}>
+    <circle cx="8" cy="15" r="4" />
+    <path d="m10.9 12.1 7.3-7.3" />
+    <path d="m16.5 6.5 2.2 2.2" />
+    <path d="m19.3 3.7 1.8 1.8" />
+  </Svg>
+)
+
+/* Ma'lumotlarni yuklab olish — pastga o'q. */
+export const DownloadIcon = (p) => (
+  <Svg {...p}>
+    <path d="M12 4v10" />
+    <path d="m8 10.5 4 4 4-4" />
+    <path d="M4.5 17v1.5a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2V17" />
+  </Svg>
+)
+
+/* Hujjat — shartlar va siyosat sahifalari. */
+export const FileTextIcon = (p) => (
+  <Svg {...p}>
+    <path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z" />
+    <path d="M14 3v5h5" />
+    <path d="M8.5 13h7" />
+    <path d="M8.5 17h4.5" />
+  </Svg>
+)
+
+/* Ko'rinish — ranglar palitrasi. */
+export const PaletteIcon = (p) => (
+  <Svg {...p}>
+    <path d="M12 3a9 9 0 1 0 0 18c1.1 0 1.8-.9 1.8-1.9 0-.5-.2-.9-.5-1.2-.3-.3-.5-.7-.5-1.2 0-1 .8-1.8 1.8-1.8H16a5 5 0 0 0 5-5c0-3.9-4-7-9-7" />
+    <path d="M7.5 12.5h.01" />
+    <path d="M9.5 8.5h.01" />
+    <path d="M14 7.5h.01" />
+  </Svg>
+)
+
+/* Onlayn holat — faollik chizig'i. */
+export const PulseIcon = (p) => (
+  <Svg {...p}>
+    <path d="M3 12h3.5L9 5.5l4 13 2.5-6.5H21" />
+  </Svg>
+)
+
+/* Profil rasmini almashtirish nishoni. */
+export const CameraIcon = (p) => (
+  <Svg {...p}>
+    <path d="M4 8.5h2.6l1.5-2.2h7.8l1.5 2.2H20a1 1 0 0 1 1 1V18a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9.5a1 1 0 0 1 1-1z" />
+    <circle cx="12" cy="13.2" r="3.3" />
+  </Svg>
+)
+
+/* ------------------------------ Xabarlar --------------------------------- */
+
+/* Ovozli xabar yozish. */
+export const MicIcon = (p) => (
+  <Svg {...p}>
+    <rect x="9" y="2.5" width="6" height="11" rx="3" />
+    <path d="M5.5 11a6.5 6.5 0 0 0 13 0" />
+    <path d="M12 17.5V21" />
+  </Svg>
+)
+
+/* Ovozli qo'ng'iroq. */
+export const PhoneCallIcon = (p) => (
+  <Svg {...p}>
+    <path d="M7.5 3.5 9.8 8l-2 1.9a12 12 0 0 0 6.3 6.3l1.9-2 4.5 2.3v3.1a1 1 0 0 1-1.1 1C10.9 20 4 13.1 3.4 4.6a1 1 0 0 1 1-1.1z" />
+  </Svg>
+)
+
+/* Video qo'ng'iroq. */
+export const VideoIcon = (p) => (
+  <Svg {...p}>
+    <rect x="2.5" y="6" width="13" height="12" rx="2.5" />
+    <path d="m15.5 10.5 6-3.2v9.4l-6-3.2z" />
+  </Svg>
+)
+
+/* Qo'ng'iroqni tugatish. */
+export const PhoneOffIcon = (p) => (
+  <Svg {...p}>
+    <path d="M2.5 9.6a13.6 13.6 0 0 1 19 0l-2.6 2.6a2 2 0 0 1-2.5.2l-1.3-.9a1 1 0 0 1-.4-.9V8.8a10 10 0 0 0-5.4 0v1.8a1 1 0 0 1-.4.9l-1.3.9a2 2 0 0 1-2.5-.2z" />
+    <path d="m3 21 18-18" />
+  </Svg>
+)
+
+export const PlayIcon = (p) => (
+  <Svg {...p}>
+    <path d="M8 5.2v13.6L19 12z" fill="currentColor" stroke="none" />
+  </Svg>
+)
+
+export const PauseIcon = (p) => (
+  <Svg {...p}>
+    <rect x="7" y="5" width="3.6" height="14" rx="1.2" fill="currentColor" stroke="none" />
+    <rect x="13.4" y="5" width="3.6" height="14" rx="1.2" fill="currentColor" stroke="none" />
+  </Svg>
+)
+
+/* Karnay (dinamik) yoqilgan. */
+export const SpeakerIcon = (p) => (
+  <Svg {...p}>
+    <path d="M4 9.5h3.5L12 5.5v13l-4.5-4H4z" />
+    <path d="M16 9.2a4 4 0 0 1 0 5.6" />
+    <path d="M18.6 6.6a7.5 7.5 0 0 1 0 10.8" />
+  </Svg>
+)
+
+/* Mikrofon o'chirilgan. */
+export const MicOffIcon = (p) => (
+  <Svg {...p}>
+    <path d="M15 5.4A3 3 0 0 0 9 5.5v3.1" />
+    <path d="M9 12.4a3 3 0 0 0 4.6 2.4" />
+    <path d="M5.5 11a6.5 6.5 0 0 0 9.6 5.7" />
+    <path d="M18.5 11a6.5 6.5 0 0 1-.5 2.5" />
+    <path d="M12 17.5V21" />
+    <path d="m3 3 18 18" />
+  </Svg>
+)
+
+/* Kamera o'chirilgan. */
+export const VideoOffIcon = (p) => (
+  <Svg {...p}>
+    <path d="M15.5 15.5v.5a2 2 0 0 1-2 2h-9a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h1" />
+    <path d="M8.5 6h5a2 2 0 0 1 2 2v3.2l6-3.9v9.4l-3-1.9" />
+    <path d="m3 3 18 18" />
+  </Svg>
+)
+
+/* Old/orqa kamerani almashtirish. */
+export const CameraFlipIcon = (p) => (
+  <Svg {...p}>
+    <path d="M4 8.5h2.6l1.5-2.2h7.8l1.5 2.2H20a1 1 0 0 1 1 1V18a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9.5a1 1 0 0 1 1-1z" />
+    <path d="M9.6 13.2a2.6 2.6 0 0 1 4.4-1.9" />
+    <path d="M14.4 13.2a2.6 2.6 0 0 1-4.4 1.9" />
+    <path d="M14 9.8v1.6h-1.6" />
+    <path d="M10 16.6V15h1.6" />
+  </Svg>
+)
+
+/* Yuborilgan (bitta belgi). */
+export const CheckOneIcon = (p) => (
+  <Svg {...p}>
+    <path d="m5 12.5 4.5 4.5L19 7" />
+  </Svg>
+)
+
+/* Yetkazilgan / o'qilgan (ikkita belgi). */
+export const CheckTwoIcon = (p) => (
+  <Svg {...p}>
+    <path d="m1.5 12.5 4.5 4.5L15.5 7" />
+    <path d="m9.5 15 1.6 1.6L20.5 7" />
+  </Svg>
+)
+
+/* Javob berish (o'qning orqaga qaytishi). */
+export const ReplyIcon = (p) => (
+  <Svg {...p}>
+    <path d="M9 7 4 12l5 5" />
+    <path d="M4 12h9a6 6 0 0 1 6 6v1" />
+  </Svg>
+)
+
+/* ------------------------------ E'lonlar --------------------------------- */
+
+/* Saqlash (sevimlilar). `filled` — to'ldirilgan holat. */
+export const HeartIcon = ({ filled = false, ...p }) => (
+  <Svg {...p} fill={filled ? 'currentColor' : 'none'}>
+    <path d="M12 20s-7.5-4.6-7.5-9.4A4.1 4.1 0 0 1 12 7.6a4.1 4.1 0 0 1 7.5 3C19.5 15.4 12 20 12 20z" />
+  </Svg>
+)
+
+/* Ulashish. */
+export const ShareIcon = (p) => (
+  <Svg {...p}>
+    <path d="M12 3.5v11" />
+    <path d="m8 7.2 4-3.7 4 3.7" />
+    <path d="M5 13v6a1.5 1.5 0 0 0 1.5 1.5h11A1.5 1.5 0 0 0 19 19v-6" />
+  </Svg>
+)
+
+/* -------------------------- Chatdagi media ------------------------------- */
+
+export const PaperclipIcon = (p) => (
+  <Svg {...p}>
+    <path d="M20 11.5 12.2 19.3a4.6 4.6 0 0 1-6.5-6.5l8-8a3.1 3.1 0 0 1 4.4 4.4l-8 8a1.6 1.6 0 0 1-2.2-2.2l7.3-7.3" />
+  </Svg>
+)
+
+export const ImageIcon = (p) => (
+  <Svg {...p}>
+    <rect x="3" y="4.5" width="18" height="15" rx="2.5" />
+    <circle cx="8.6" cy="9.8" r="1.6" />
+    <path d="m3.6 17.2 4.6-4.3a1.6 1.6 0 0 1 2.2 0l3.2 3 2-1.8a1.6 1.6 0 0 1 2.2 0l2.6 2.4" />
+  </Svg>
+)
+
+export const FileIcon = (p) => (
+  <Svg {...p}>
+    <path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z" />
+    <path d="M14 3v5h5" />
+  </Svg>
+)
+
+export const SheetIcon = (p) => (
+  <Svg {...p}>
+    <rect x="4" y="4" width="16" height="16" rx="2" />
+    <path d="M4 9.5h16" />
+    <path d="M4 14.5h16" />
+    <path d="M12 9.5V20" />
+  </Svg>
+)
+
+export const ArchiveIcon = (p) => (
+  <Svg {...p}>
+    <rect x="3.5" y="4" width="17" height="4" rx="1" />
+    <path d="M5 8v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8" />
+    <path d="M10.5 12h3" />
+  </Svg>
+)
+
+export const DownloadFileIcon = (p) => (
+  <Svg {...p}>
+    <path d="M12 4v9" />
+    <path d="m8.5 9.8 3.5 3.5 3.5-3.5" />
+    <path d="M5 16v2.5a1.5 1.5 0 0 0 1.5 1.5h11a1.5 1.5 0 0 0 1.5-1.5V16" />
+  </Svg>
+)
+
+/* ---------------- Tranzaksiya, tarif va kalkulyator ikonkalari ----------- */
+
+/* Super kalkulyator. */
+export const CalculatorIcon = (p) => (
+  <Svg {...p}>
+    <rect x="4.5" y="3" width="15" height="18" rx="2" />
+    <path d="M8 7.5h8" />
+    <path d="M8.5 12h.01M12 12h.01M15.5 12h.01" />
+    <path d="M8.5 16h.01M12 16h.01M15.5 16h.01" />
+  </Svg>
+)
+
+/* Reyting yulduzi. `filled` — to'ldirilgan ko'rinish. */
+export const StarIcon = ({ filled = false, ...p }) => (
+  <Svg {...p} fill={filled ? 'currentColor' : 'none'}>
+    <path d="m12 3.6 2.6 5.3 5.9.85-4.25 4.15 1 5.85L12 16.99l-5.25 2.76 1-5.85L3.5 9.75l5.9-.85z" />
+  </Svg>
+)
+
+/* Premium nishoni — toj. */
+export const CrownIcon = (p) => (
+  <Svg {...p}>
+    <path d="M4 18h16" />
+    <path d="M4 18 3 7.5l4.5 3.5L12 5l4.5 6 4.5-3.5L20 18z" />
+  </Svg>
+)
+
+/* Tarozi cheki. */
+export const ReceiptIcon = (p) => (
+  <Svg {...p}>
+    <path d="M6 3.5h12v17l-2.4-1.6-2.4 1.6-2.4-1.6L8.4 20.5 6 18.9z" />
+    <path d="M9 8h6" />
+    <path d="M9 12h6" />
+  </Svg>
+)
+
+/* Eskrov hisobi — qulfli hamyon. */
+export const WalletIcon = (p) => (
+  <Svg {...p}>
+    <path d="M3.5 7.5A2 2 0 0 1 5.5 5.5H17a1 1 0 0 1 1 1v1.5" />
+    <rect x="3.5" y="7.5" width="17" height="11" rx="2" />
+    <path d="M16.5 13h.01" />
+  </Svg>
+)
+
+/* Yuk mashinasi — mahsulotni olib ketish bosqichi. */
+export const TruckIcon = (p) => (
+  <Svg {...p}>
+    <path d="M3.5 6.5h10v9h-10z" />
+    <path d="M13.5 10h3.4l2.6 2.8v2.7h-6z" />
+    <circle cx="7" cy="17.5" r="1.8" />
+    <circle cx="16.5" cy="17.5" r="1.8" />
+  </Svg>
+)
+
+/* Tasdiqlangan dehqon — qalqon ichida belgi. */
+export const ShieldCheckIcon = (p) => (
+  <Svg {...p}>
+    <path d="M12 3.2 19 6v5.5c0 4.2-2.9 7.4-7 9.3-4.1-1.9-7-5.1-7-9.3V6z" />
+    <path d="m9 12 2 2 4-4" />
+  </Svg>
+)
+
+/* Qo'l siqish — kelishuv (tranzaksiya) boshlash. */
+export const HandshakeIcon = (p) => (
+  <Svg {...p}>
+    <path d="m3 12 3.5-3.5 3 1 2.5-1.5 2.5 1.5 3-1L21 12" />
+    <path d="M6.5 12.5 10 16l1.5-1.5L13 16l3.5-3.5" />
+    <path d="M3 12v3.5M21 12v3.5" />
+  </Svg>
+)
+
+/* Soat — hisob tarixi. */
+export const ClockIcon = (p) => (
+  <Svg {...p}>
+    <circle cx="12" cy="12" r="8.5" />
+    <path d="M12 7.5V12l3 1.8" />
   </Svg>
 )

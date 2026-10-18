@@ -17,11 +17,14 @@ export default function PasswordInput({
   const t = useT()
   const id = useId()
   const [shown, setShown] = useState(false)
-  const filled = Boolean(value)
 
   return (
     <div className="field">
-      <div className={`float-field has-toggle${filled ? ' filled' : ''}${error ? ' invalid' : ''}`}>
+      <label className="field-label" htmlFor={id}>
+        {label}
+      </label>
+
+      <div className={`field-box has-toggle${error ? ' invalid' : ''}`}>
         <input
           id={id}
           name={name}
@@ -33,47 +36,44 @@ export default function PasswordInput({
           aria-invalid={Boolean(error)}
           aria-describedby={error ? `${id}-err` : undefined}
         />
-        <label className="float-label" htmlFor={id}>
-          {label}
-        </label>
 
         <motion.button
           type="button"
-          className="input-toggle"
+          className="field-toggle"
           whileTap={tapSmall}
           onClick={() => setShown((v) => !v)}
           aria-label={shown ? t('auth.hidePassword') : t('auth.showPassword')}
           aria-pressed={shown}
         >
-          {shown ? <EyeOffIcon size={18} /> : <EyeIcon size={18} />}
+          {shown ? <EyeOffIcon size={16} /> : <EyeIcon size={16} />}
         </motion.button>
       </div>
 
       <AnimatePresence mode="wait" initial={false}>
         {error ? (
-          <motion.div
+          <motion.p
             key="err"
             id={`${id}-err`}
-            className="field-error"
+            className="field-msg is-error"
             role="alert"
-            initial={{ opacity: 0, y: -4 }}
+            initial={{ opacity: 0, y: -3 }}
             animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -4 }}
-            transition={{ duration: 0.16 }}
+            exit={{ opacity: 0, y: -3 }}
+            transition={{ duration: 0.15 }}
           >
             <AlertIcon size={13} />
             {error}
-          </motion.div>
+          </motion.p>
         ) : hint ? (
-          <motion.div
+          <motion.p
             key="hint"
-            className="field-hint"
+            className="field-msg"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
           >
             {hint}
-          </motion.div>
+          </motion.p>
         ) : null}
       </AnimatePresence>
     </div>

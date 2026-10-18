@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { useNavigate } from 'react-router-dom'
 import { UserCheckIcon, UserPlusIcon } from './Icons.jsx'
-import { followProfile, unfollowProfile } from '../api.js'
+import { followProfile, unfollowProfile } from '../services/index.js'
 import { getToken } from '../auth.js'
 import { useT } from '../i18n/index.jsx'
 import { spring, tapSmall } from '../motion.js'
@@ -58,7 +58,7 @@ export default function FollowButton({
   return (
     <motion.button
       type="button"
-      className={`${className} ${isFollowed ? 'btn-ghost is-following' : 'btn-primary'}`}
+      className={`${className} ${isFollowed ? 'btn-ghost is-following' : 'btn-fire'}`}
       whileTap={tapSmall}
       onClick={toggle}
       aria-pressed={isFollowed}
@@ -72,7 +72,7 @@ export default function FollowButton({
           exit={{ opacity: 0, y: -6 }}
           transition={spring}
         >
-          {isFollowed ? <UserCheckIcon size={15} /> : <UserPlusIcon size={15} />}
+          {isFollowed ? <UserCheckIcon size={14} /> : <UserPlusIcon size={14} />}
           {isFollowed ? t('profile.unfollow') : t('profile.follow')}
         </motion.span>
       </AnimatePresence>

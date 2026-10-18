@@ -7,18 +7,24 @@ export const softSpring = { type: 'spring', stiffness: 260, damping: 28 }
 export const enter = { duration: 0.3, ease: [0.22, 1, 0.36, 1] }
 export const exit = { duration: 0.18, ease: [0.4, 0, 1, 1] }
 
+/*
+ * Sahifa variantlarida `exit` YO'Q — ataylab.
+ * Chiqish animatsiyasi <AnimatePresence mode="wait"> bilan birga yangi
+ * sahifaning mount bo'lishini kutdirardi: har bir o'tishda ~215ms qotib
+ * turish va bo'sh ekran. Endi eski sahifa darhol olib tashlanadi, yangisi
+ * esa faqat kirish animatsiyasi bilan (transform + opacity) paydo bo'ladi.
+ */
+
 /** Tab sahifalari — yumshoq ko'tarilib paydo bo'ladi (siljish + so'nish). */
 export const fadePage = {
-  initial: { opacity: 0, y: 10 },
+  initial: { opacity: 0, y: 8 },
   animate: { opacity: 1, y: 0, transition: enter },
-  exit: { opacity: 0, y: -8, transition: exit },
 }
 
 /** Ichki sahifalar (detal, chat) — o'ngdan suriladi. */
 export const slidePage = {
-  initial: { opacity: 0, x: 26 },
+  initial: { opacity: 0, x: 20 },
   animate: { opacity: 1, x: 0, transition: enter },
-  exit: { opacity: 0, x: -18, transition: exit },
 }
 
 /** Ko'p qadamli forma qadamlari — yo'nalishga qarab siljiydi. */
@@ -31,6 +37,19 @@ export const stepVariants = {
 /** Ro'yxat elementlari ketma-ket paydo bo'ladi. */
 export const listContainer = {
   animate: { transition: { staggerChildren: 0.045, delayChildren: 0.02 } },
+}
+
+/**
+ * Uzun ro'yxatlar uchun: ketma-ketlik butun ro'yxat bo'ylab STAGGER_BUDGET
+ * ichiga sig'diriladi. Qat'iy 45ms bilan 300 ta karta 13 soniya davomida
+ * paydo bo'lardi — foydalanuvchi uchun bu shunchaki "sahifa qotib qoldi".
+ */
+const STAGGER_BUDGET = 0.35
+
+export function listContainerFor(count) {
+  if (!count || count <= 1) return listContainer
+  const step = Math.min(0.045, STAGGER_BUDGET / count)
+  return { animate: { transition: { staggerChildren: step, delayChildren: 0.02 } } }
 }
 
 export const listItem = {
@@ -47,6 +66,18 @@ export const bubbleIn = {
 /** Bosilganda kichrayish — barcha bosiladigan kartalar/tugmalar uchun. */
 export const tap = { scale: 0.975 }
 export const tapSmall = { scale: 0.94 }
+
+/*
+ * Karta ustida sichqoncha / barmoq.
+ *
+ * Bu ikkalasi CSS da emas, framer-motion orqali beriladi: karta `listItem`
+ * varianti bilan chiqadi, ya'ni uning `transform` i motion tomonidan
+ * boshqariladi (chiqish tugagach elementga `transform: none` yoziladi) —
+ * CSS dagi :hover/:active transform i shu inline qiymat ostida ko'rinmay
+ * qolardi.
+ */
+export const cardHover = { y: -2, transition: { duration: 0.2, ease: [0.22, 1, 0.36, 1] } }
+export const cardTap = { scale: 0.98, transition: { duration: 0.1 } }
 
 /**
  * prefers-reduced-motion yoqilgan bo'lsa harakatni o'chiradi.

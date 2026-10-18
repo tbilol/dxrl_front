@@ -1,13 +1,30 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
-import { errorMessage, getMe } from './api.js'
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react'
+
+import { endSession, errorMessage, getMe } from './services/index.js'
 import { clearToken, getToken } from './auth.js'
 import log from './logger.js'
 
 /**
- * Joriy foydalanuvchi profilini /api/auth/me dan yuklaydi.
- * Token bo'lmasa yoki yaroqsiz bo'lsa — user null bo'ladi.
+ * Joriy foydalanuvchi profili — butun ilova uchun BITTA marta yuklanadi.
+ *
+ * Ilgari bu oddiy hook edi va uni ishlatgan har bir sahifa mount bo'lganda
+ * /api/auth/me ga yangi so'rov yuborardi. Ya'ni Profil, Sozlamalar, Chat,
+ * E'lon formasi va tafsilot sahifalariga har o'tganda tarmoq borish-kelishi
+ * kutilardi va shu vaqt ichida sahifa skelet holatida turardi.
+ * Endi profil bitta joyda saqlanadi — navigatsiyada qayta so'ralmaydi.
  */
-export default function useCurrentUser() {
+
+const CurrentUserContext = createContext(null)
+
+export function CurrentUserProvider({ children }) {
   const [user, setUser] = useState(null)
   const [loading, setLoading] = useState(() => Boolean(getToken()))
   const [error, setError] = useState('')
@@ -52,10 +69,23 @@ export default function useCurrentUser() {
 
   const logout = useCallback(() => {
     log.auth('Foydalanuvchi chiqmoqda')
+    // MOCK: xizmat qatlamidagi sessiya ham yopiladi.
+    endSession()
     clearToken()
     setUser(null)
     setError('')
   }, [])
 
-  return { user, setUser, loading, error, setError, reload, logout }
+  const value = useMemo(
+    () => ({ user, setUser, loading, error, setError, reload, logout }),
+    [user, loading, error, reload, logout],
+  )
+
+  return <CurrentUserContext.Provider value={value}>{children}</CurrentUserContext.Provider>
+}
+
+export default function useCurrentUser() {
+  const ctx = useContext(CurrentUserContext)
+  if (!ctx) throw new Error('useCurrentUser() faqat <CurrentUserProvider> ichida ishlaydi')
+  return ctx
 }

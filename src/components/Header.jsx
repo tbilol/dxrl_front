@@ -4,39 +4,40 @@ import { ArrowLeftIcon } from './Icons.jsx'
 import { tapSmall } from '../motion.js'
 
 /**
- * Gradientli sarlavha. `backTo` berilsa orqaga tugmasi chiqadi,
- * `actions` — o'ng tomondagi tugmalar (sozlamalar, xabarlar...).
+ * Sahifa ustidagi yopishqoq panel: orqaga tugmasi, sarlavha va o'ngdagi amallar.
+ * `backTo` berilsa orqaga tugmasi chiqadi, `actions` — o'ng tomondagi tugmalar.
  */
 export default function Header({ title, subtitle, backTo, actions, backLabel = 'Orqaga' }) {
   const navigate = useNavigate()
 
   return (
-    <header className="header">
-      <div className="header-row">
+    <header className="topbar">
+      <div className="topbar-row">
         {backTo && (
           <motion.button
             type="button"
-            className="header-btn"
+            className="icon-btn"
             whileTap={tapSmall}
             onClick={() => navigate(backTo)}
             aria-label={backLabel}
           >
-            <ArrowLeftIcon size={20} />
+            <ArrowLeftIcon size={17} />
           </motion.button>
         )}
 
-        <div style={{ flex: 1, minWidth: 0 }}>
+        <div className="topbar-titles">
           <motion.h1
-            initial={{ opacity: 0, y: 6 }}
+            className="topbar-title"
+            initial={{ opacity: 0, y: 4 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.24, ease: [0.22, 1, 0.36, 1] }}
+            transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
           >
             {title}
           </motion.h1>
-          {subtitle && <p className="subtitle">{subtitle}</p>}
+          {subtitle && <p className="topbar-sub">{subtitle}</p>}
         </div>
 
-        {actions}
+        {actions && <div className="topbar-actions">{actions}</div>}
       </div>
     </header>
   )

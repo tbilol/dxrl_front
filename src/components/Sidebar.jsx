@@ -1,82 +1,84 @@
+import { memo } from 'react'
 import { motion, useReducedMotion } from 'framer-motion'
 import { NavLink } from 'react-router-dom'
 import { LeafIcon, SettingsIcon } from './Icons.jsx'
 import { useT } from '../i18n/index.jsx'
 import { spring } from '../motion.js'
-import NAV_ITEMS from '../navItems.js'
+import { NAV_GROUPS, SIDEBAR_EXTRA } from '../navItems.js'
 
-/** Desktop (>= 1024px) uchun chapdagi shishasimon yon menyu. */
-export default function Sidebar() {
+/**
+ * Desktop (>= 1024px) uchun chapdagi yon menyu.
+ * Tuzilishi: brend → guruhlangan bo'limlar → pastda sozlamalar.
+ *
+ * Bu yerda "yangi e'lon" tugmasi yo'q: uni ro'yxat sahifalaridagi yagona
+ * suzuvchi "+" tugmasi (<Fab>) bajaradi — bitta ekranda ikkita bir xil
+ * amal tugmasi turmasligi uchun.
+ */
+function Sidebar() {
   const t = useT()
   const reduced = useReducedMotion()
 
   return (
     <aside className="sidebar">
-      <div className="sidebar-brand">
-        <span className="sidebar-mark" aria-hidden="true">
-          <LeafIcon size={22} />
+      <NavLink to="/" className="sb-brand">
+        {/* Logotip: barg shakli o'zgarmagan, faqat yangi ramka va rang. */}
+        <span className="sb-mark" aria-hidden="true">
+          <LeafIcon size={16} />
         </span>
-        <span style={{ minWidth: 0 }}>
-          <span className="name">{t('app.name')}</span>
-          <span className="tag" style={{ display: 'block' }}>
-            {t('app.tagline')}
-          </span>
+        <span className="sb-word">
+          <span className="sb-name">{t('app.name')}</span>
+          <span className="sb-tag">{t('app.tagline')}</span>
         </span>
-      </div>
+      </NavLink>
 
-      <nav aria-label={t('app.name')} style={{ display: 'grid', gap: 4 }}>
-        {NAV_ITEMS.map(({ to, icon: Icon, key, end }) => (
-          <NavLink
-            key={to}
-            to={to}
-            end={end}
-            className={({ isActive }) => `side-item${isActive ? ' active' : ''}`}
-          >
-            {({ isActive }) => (
-              <>
-                {isActive && (
-                  <motion.span
-                    layoutId="side-pill"
-                    className="side-pill"
-                    transition={reduced ? { duration: 0 } : spring}
-                  />
+      <nav className="sb-nav" aria-label={t('app.name')}>
+        {[...NAV_GROUPS, SIDEBAR_EXTRA].map((group) => (
+          <div className="sb-group" key={group.key}>
+            <span className="sb-group-label">{t(group.key)}</span>
+
+            {group.items.map(({ to, icon: Icon, key, end }) => (
+              <NavLink
+                key={to}
+                to={to}
+                end={end}
+                className={({ isActive }) => `sb-item${isActive ? ' active' : ''}`}
+              >
+                {({ isActive }) => (
+                  <>
+                    {isActive && (
+                      <motion.span
+                        layoutId="sb-active"
+                        className="sb-active"
+                        transition={reduced ? { duration: 0 } : spring}
+                      />
+                    )}
+                    <span className="sb-icon">
+                      <Icon size={16} />
+                    </span>
+                    <span className="sb-label">{t(key)}</span>
+                  </>
                 )}
-
-                <motion.span
-                  className="side-icon"
-                  animate={{ scale: isActive ? 1.06 : 1 }}
-                  transition={reduced ? { duration: 0 } : spring}
-                >
-                  <Icon size={20} />
-                </motion.span>
-
-                <span className="side-label">{t(key)}</span>
-
-                {isActive && (
-                  <motion.span
-                    layoutId="side-dot"
-                    className="side-dot"
-                    transition={reduced ? { duration: 0 } : spring}
-                    aria-hidden="true"
-                  />
-                )}
-              </>
-            )}
-          </NavLink>
+              </NavLink>
+            ))}
+          </div>
         ))}
       </nav>
 
-      <div className="sidebar-foot">
+      <div className="sb-foot">
         <NavLink
           to="/sozlamalar"
-          className={({ isActive }) => `side-item${isActive ? ' active' : ''}`}
+          className={({ isActive }) => `sb-item${isActive ? ' active' : ''}`}
         >
-          <span className="side-icon">
-            <SettingsIcon size={20} />
+          <span className="sb-icon">
+            <SettingsIcon size={16} />
           </span>
-          <span className="side-label">{t('settings.title')}</span>
+          <span className="sb-label">{t('settings.title')}</span>
         </NavLink>
       </div>
     </aside>
   )
 }
+
+/* Marshrut o'zgarganda qayta render bo'lishi shart emas: faol bo'limni
+   NavLink o'zi router kontekstidan oladi. */
+export default memo(Sidebar)

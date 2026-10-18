@@ -1,3 +1,5 @@
+import { findProductByName } from './data/products.js'
+
 const MONTHS = {
   uz: ['yan', 'fev', 'mar', 'apr', 'may', 'iyun', 'iyul', 'avg', 'sen', 'okt', 'noy', 'dek'],
   ru: ['янв', 'фев', 'мар', 'апр', 'мая', 'июн', 'июл', 'авг', 'сен', 'окт', 'ноя', 'дек'],
@@ -21,6 +23,14 @@ export function formatDate(value, lang = 'uz') {
   if (!d) return ''
   const months = MONTHS[lang] || MONTHS.uz
   return `${d.getDate()} ${months[d.getMonth()]}, ${pad(d.getHours())}:${pad(d.getMinutes())}`
+}
+
+/** Kartalar uchun qisqa sana: "11 sen". */
+export function formatDayShort(value, lang = 'uz') {
+  const d = parseDate(value)
+  if (!d) return ''
+  const months = MONTHS[lang] || MONTHS.uz
+  return `${d.getDate()} ${months[d.getMonth()]}`
 }
 
 /** "14:30" */
@@ -141,4 +151,37 @@ export function regionLabel(region, lang) {
 export const ROLE_KEYS = {
   dehqon: 'role.dehqon',
   sotib_oluvchi: 'role.sotib_oluvchi',
+}
+
+/**
+ * Qidiruv uchun matnni normallashtiradi: registr va o'zbekcha apostrof
+ * variantlari ( ' ʻ ʼ ‘ ’ ) bir xil ko'rinishga keltiriladi.
+ */
+export function normalizeSearch(value) {
+  return String(value ?? '')
+    .toLowerCase()
+    .replace(/[‘’ʻʼ`´]/g, "'")
+    .trim()
+}
+
+/**
+ * E'lonlar ro'yxatini so'rov bo'yicha filtrlaydi (mijoz tomonida).
+ * Sukut bo'yicha: mahsulot nomi, e'lon egasi (dehqon/xaridor) va manzil.
+ * `fields` berilsa — faqat o'sha maydonlar tekshiriladi (masalan ['product']).
+ */
+export function filterListings(items, query, fields = null) {
+  const q = normalizeSearch(query)
+  if (!q) return items
+
+  return items.filter((item) => {
+    /* Mahsulot nomi bazada o'zbekcha saqlanadi — ruscha yozilgan so'rov ham
+       topilishi uchun ikkala yorliq tekshiriladi (src/data/products.js). */
+    const product = findProductByName(item.product)
+    const productNames = product ? [product.uz, product.ru] : [item.product]
+
+    const haystack = fields
+      ? fields.flatMap((name) => (name === 'product' ? productNames : [item[name]]))
+      : [...productNames, item.farmer_name, item.buyer_name, item.owner?.name, item.address]
+    return haystack.some((field) => field && normalizeSearch(field).includes(q))
+  })
 }

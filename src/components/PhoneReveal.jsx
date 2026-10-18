@@ -17,12 +17,12 @@ export default function PhoneReveal({ phone }) {
             key="value"
             href={`tel:${String(phone).replace(/\s/g, '')}`}
             className="phone-value"
-            initial={{ opacity: 0, scale: 0.96 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.96 }}
+            initial={{ opacity: 0, y: 4 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -4 }}
             transition={spring}
           >
-            <PhoneIcon size={19} />
+            <PhoneIcon size={16} />
             <span className="num">{phone}</span>
           </motion.a>
         ) : (
@@ -36,7 +36,7 @@ export default function PhoneReveal({ phone }) {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
           >
-            <PhoneIcon size={18} />
+            <PhoneIcon size={16} />
             {t('listing.revealPhone')}
           </motion.button>
         )}

@@ -1,7 +1,9 @@
 /**
- * localStorage kalitlari AGROGRAM nomiga o'tkazildi.
- * Eski `agro_auksion_*` kalitlari bir marta ko'chiriladi — shunda mavjud
- * foydalanuvchilar tizimdan chiqib ketmaydi va sozlamalari saqlanadi.
+ * localStorage kalitlari AGROGRAM nomida.
+ * LEGACY ro'yxatidagi qiymatlar — ilovaning eski nashrida brauzerga
+ * yozilgan kalitlar nomlari. Ular o'zgartirilmaydi: aynan shu satrlar
+ * mavjud foydalanuvchilar qurilmasida saqlangan, va bir marta yangi
+ * kalitga ko'chiriladi — shunda hech kim tizimdan chiqib ketmaydi.
  */
 
 import log from './logger.js'
@@ -10,6 +12,11 @@ export const KEYS = {
   token: 'agrogram_token',
   theme: 'agrogram_theme',
   lang: 'agrogram_lang',
+  settings: 'agrogram_settings',
+  favorites: 'agrogram_favorites',
+  chatSplit: 'agrogram_chat_split',
+  calcHistory: 'agrogram_calc_history',
+  yieldHistory: 'agrogram_yield_history',
 }
 
 const LEGACY = {
@@ -18,7 +25,7 @@ const LEGACY = {
   [KEYS.lang]: 'agro_auksion_lang',
 }
 
-/** Eski kalitlar — chiqishda ular ham tozalanadi. */
+/** Eski nashr kalitlari — chiqishda ular ham tozalanadi. */
 export const LEGACY_KEYS = [...Object.values(LEGACY), 'agro_auksion_profile_id']
 
 export function readStored(key) {

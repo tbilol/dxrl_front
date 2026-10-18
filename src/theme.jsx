@@ -4,29 +4,31 @@ import log from './logger.js'
 import { KEYS, readStored, writeStored } from './storage.js'
 
 const STORAGE_KEY = KEYS.theme
-export const THEMES = ['light', 'dark', 'system']
+/** Ikkita mavzu: yorug' va tungi. */
+export const THEMES = ['light', 'dark']
 
 const ThemeContext = createContext(null)
-
-function readSavedTheme() {
-  const saved = readStored(STORAGE_KEY)
-  if (saved && THEMES.includes(saved)) return saved
-  return 'system'
-}
 
 function systemPrefersDark() {
   return window.matchMedia?.('(prefers-color-scheme: dark)').matches ?? false
 }
 
-function resolve(theme) {
-  return theme === 'system' ? (systemPrefersDark() ? 'dark' : 'light') : theme
+/**
+ * Saqlangan mavzu. Hech narsa tanlanmagan bo'lsa (yoki eski 'system' qiymati
+ * qolgan bo'lsa) — birinchi marta OS sozlamasidan boshlanadi.
+ */
+function readSavedTheme() {
+  const saved = readStored(STORAGE_KEY)
+  if (saved && THEMES.includes(saved)) return saved
+  return systemPrefersDark() ? 'dark' : 'light'
 }
 
-function paint(resolved) {
-  document.documentElement.dataset.theme = resolved
+function paint(theme) {
+  document.documentElement.dataset.theme = theme
   // Brauzer manzil paneli rangi ham mavzuga moslashadi.
   const meta = document.querySelector('meta[name="theme-color"]')
-  if (meta) meta.setAttribute('content', resolved === 'dark' ? '#1E1814' : '#A98B76')
+  // Rang qiymatlari index.css dagi --color-bg-primary bilan bir xil.
+  if (meta) meta.setAttribute('content', theme === 'dark' ? '#121212' : '#FFFFFF')
 }
 
 /**
@@ -34,33 +36,16 @@ function paint(resolved) {
  * yorug' mavzuda "chaqnab" ketmaydi.
  */
 export function applyStoredTheme() {
-  paint(resolve(readSavedTheme()))
+  paint(readSavedTheme())
 }
 
 export function ThemeProvider({ children }) {
   const [theme, setThemeState] = useState(readSavedTheme)
-  const [resolved, setResolved] = useState(() => resolve(readSavedTheme()))
 
   useEffect(() => {
-    const next = resolve(theme)
-    setResolved(next)
-    paint(next)
+    paint(theme)
     writeStored(STORAGE_KEY, theme)
-    log.front('Mavzu o\'zgardi', { theme, resolved: next })
-  }, [theme])
-
-  // "Tizim" tanlanganda OS mavzusi o'zgarsa — darhol moslashamiz.
-  useEffect(() => {
-    if (theme !== 'system') return undefined
-    const mq = window.matchMedia('(prefers-color-scheme: dark)')
-    const onChange = () => {
-      const next = resolve('system')
-      setResolved(next)
-      paint(next)
-      log.front('Tizim mavzusi o\'zgardi', next)
-    }
-    mq.addEventListener('change', onChange)
-    return () => mq.removeEventListener('change', onChange)
+    log.front('Mavzu o\'zgardi', theme)
   }, [theme])
 
   const setTheme = useCallback((next) => {
@@ -68,8 +53,8 @@ export function ThemeProvider({ children }) {
   }, [])
 
   const value = useMemo(
-    () => ({ theme, resolved, setTheme, isDark: resolved === 'dark' }),
-    [theme, resolved, setTheme],
+    () => ({ theme, resolved: theme, setTheme, isDark: theme === 'dark' }),
+    [theme, setTheme],
   )
 
   return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>

@@ -3,20 +3,26 @@
 
 /* Fragment qaytaradi — shunda kartalar `.card-grid` ichida to'g'ridan-to'g'ri
    to'r elementlari bo'ladi (o'ralgan div to'rni buzmaydi). */
-export function ListingSkeleton({ count = 3 }) {
+export function ListingSkeleton({ count = 6 }) {
   return (
     <>
       {Array.from({ length: count }).map((_, i) => (
-        <div key={i} className="card" aria-hidden="true" style={{ opacity: 1 - i * 0.18 }}>
-          <div style={{ display: 'flex', gap: 12, marginBottom: 14 }}>
-            <div className="skeleton" style={{ width: 110, height: 32, borderRadius: 999 }} />
-            <div
-              className="skeleton"
-              style={{ width: 78, height: 32, borderRadius: 10, marginLeft: 'auto' }}
-            />
+        <div key={i} className="lcard is-skeleton" aria-hidden="true">
+          <div className="lcard-hit">
+            <div className="lcard-media">
+              <div className="skeleton" style={{ aspectRatio: '3 / 2', borderRadius: 0 }} />
+            </div>
+            <div className="lcard-body">
+              <div className="skeleton skeleton-line" style={{ width: '62%', height: 15 }} />
+              <div className="skeleton" style={{ width: '78%', height: 18 }} />
+              <div className="skeleton skeleton-line" style={{ width: '50%' }} />
+              <div className="skeleton skeleton-line" style={{ width: '66%', marginBottom: 0 }} />
+            </div>
           </div>
-          <div className="skeleton skeleton-line" style={{ width: '72%' }} />
-          <div className="skeleton skeleton-line" style={{ width: '48%', marginBottom: 0 }} />
+          <div className="lcard-foot">
+            <div className="skeleton skeleton-line" style={{ width: 72, marginBottom: 0 }} />
+            <div className="skeleton skeleton-line" style={{ width: 34, marginBottom: 0 }} />
+          </div>
         </div>
       ))}
     </>
@@ -27,14 +33,11 @@ export function ConversationSkeleton({ count = 5 }) {
   return (
     <div aria-hidden="true">
       {Array.from({ length: count }).map((_, i) => (
-        <div
-          key={i}
-          style={{ display: 'flex', gap: 12, padding: '14px 16px', alignItems: 'center' }}
-        >
-          <div className="skeleton" style={{ width: 50, height: 50, borderRadius: '50%' }} />
+        <div key={i} className="conv-row is-skeleton">
+          <div className="skeleton" style={{ width: 40, height: 40, borderRadius: '50%' }} />
           <div style={{ flex: 1 }}>
-            <div className="skeleton skeleton-line" style={{ width: '42%' }} />
-            <div className="skeleton skeleton-line" style={{ width: '68%', marginBottom: 0 }} />
+            <div className="skeleton skeleton-line" style={{ width: '38%' }} />
+            <div className="skeleton skeleton-line" style={{ width: '64%', marginBottom: 0 }} />
           </div>
         </div>
       ))}

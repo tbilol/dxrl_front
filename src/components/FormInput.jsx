@@ -3,8 +3,8 @@ import { AnimatePresence, motion } from 'framer-motion'
 import { AlertIcon } from './Icons.jsx'
 
 /**
- * Suzuvchi yorliqli maydon (input / textarea / select).
- * Yorliq placeholder o'rnini bosmaydi — u doim ko'rinadi (a11y: input-labels).
+ * Yorlig'i maydon ustida turadigan kiritish maydoni (input / textarea / select).
+ * Yorliq doim ko'rinadi va bosilganda maydonni faollashtiradi (a11y: input-labels).
  */
 export default function FormInput({
   label,
@@ -22,8 +22,6 @@ export default function FormInput({
   ...rest
 }) {
   const id = useId()
-  const filled = value !== '' && value !== null && value !== undefined
-  const className = `float-field${filled || options ? ' filled' : ''}${error ? ' invalid' : ''}`
 
   const shared = {
     id,
@@ -38,7 +36,16 @@ export default function FormInput({
 
   return (
     <div className="field">
-      <div className={className}>
+      <label className="field-label" htmlFor={id}>
+        {label}
+        {required && (
+          <span className="field-req" aria-hidden="true">
+            *
+          </span>
+        )}
+      </label>
+
+      <div className={`field-box${error ? ' invalid' : ''}${suffix ? ' has-suffix' : ''}`}>
         {options ? (
           <select {...shared}>
             {options.map((o) => (
@@ -50,42 +57,37 @@ export default function FormInput({
         ) : textarea ? (
           <textarea {...shared} placeholder={placeholder} rows={4} />
         ) : (
-          <input {...shared} type={type} placeholder={filled ? placeholder : ''} />
+          <input {...shared} type={type} placeholder={placeholder} />
         )}
 
-        <label className="float-label" htmlFor={id}>
-          {label}
-          {required && <span aria-hidden="true"> *</span>}
-        </label>
-
-        {suffix && !textarea && <span className="suffix">{suffix}</span>}
+        {suffix && !textarea && <span className="field-suffix">{suffix}</span>}
       </div>
 
       <AnimatePresence mode="wait" initial={false}>
         {error ? (
-          <motion.div
+          <motion.p
             key="err"
             id={`${id}-err`}
-            className="field-error"
+            className="field-msg is-error"
             role="alert"
-            initial={{ opacity: 0, y: -4 }}
+            initial={{ opacity: 0, y: -3 }}
             animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -4 }}
-            transition={{ duration: 0.16 }}
+            exit={{ opacity: 0, y: -3 }}
+            transition={{ duration: 0.15 }}
           >
             <AlertIcon size={13} />
             {error}
-          </motion.div>
+          </motion.p>
         ) : hint ? (
-          <motion.div
+          <motion.p
             key="hint"
-            className="field-hint"
+            className="field-msg"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
           >
             {hint}
-          </motion.div>
+          </motion.p>
         ) : null}
       </AnimatePresence>
     </div>

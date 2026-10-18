@@ -8,9 +8,9 @@ import EmptyState from '../components/EmptyState.jsx'
 import PageShell from '../components/PageShell.jsx'
 import { ConversationSkeleton } from '../components/Skeletons.jsx'
 import { UsersIcon } from '../components/Icons.jsx'
-import { errorMessage, getFollowers, getFollowing } from '../api.js'
+import { errorMessage, getFollowers, getFollowing } from '../services/index.js'
 import { useT } from '../i18n/index.jsx'
-import { listContainer, listItem } from '../motion.js'
+import { listContainerFor, listItem } from '../motion.js'
 import log from '../logger.js'
 import useLogMount from '../useLogMount.js'
 
@@ -55,7 +55,7 @@ export default function FollowListPage({ mode }) {
 
       <main className="page page-flush">
         {alert && (
-          <div className="alert" style={{ margin: '0 16px 16px' }}>
+          <div className="alert" style={{ margin: '0 var(--s-4) var(--s-4)' }}>
             {alert}
           </div>
         )}
@@ -70,7 +70,7 @@ export default function FollowListPage({ mode }) {
         )}
 
         {items !== null && items.length > 0 && (
-          <motion.div variants={listContainer} initial="initial" animate="animate">
+          <motion.div variants={listContainerFor(items.length)} initial="initial" animate="animate">
             {items.map((person) => (
               <motion.div key={person.id} className="user-row" variants={listItem}>
                 <button
@@ -78,7 +78,7 @@ export default function FollowListPage({ mode }) {
                   className="user-row-main"
                   onClick={() => navigate(`/profile/${person.id}`)}
                 >
-                  <Avatar name={person.name} src={person.avatar_url} size={48} />
+                  <Avatar name={person.name} src={person.avatar_url} size={38} />
                   <span className="user-row-body">
                     <span className="user-row-name">{person.name}</span>
                     {person.address && <span className="user-row-sub">{person.address}</span>}

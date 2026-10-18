@@ -1,10 +1,9 @@
 import { motion } from 'framer-motion'
 import { useNavigate } from 'react-router-dom'
-import { APPLE_LOGIN_URL, GOOGLE_LOGIN_URL } from '../api.js'
 import { AppleIcon, GoogleIcon, LeafIcon, LockIcon, PhoneIcon } from './Icons.jsx'
 import { useT } from '../i18n/index.jsx'
-import log from '../logger.js'
-import { listContainer, listItem, spring, tap } from '../motion.js'
+import { listContainer, listItem, tap } from '../motion.js'
+import useSocialAuth from '../useSocialAuth.js'
 
 /**
  * Tizimga kirmagan foydalanuvchiga ko'rsatiladigan karta —
@@ -13,32 +12,22 @@ import { listContainer, listItem, spring, tap } from '../motion.js'
 export default function AuthRequired({ icon = 'lock', title, text, note }) {
   const t = useT()
   const navigate = useNavigate()
+  const { busy, signIn } = useSocialAuth()
   const Icon = icon === 'leaf' ? LeafIcon : LockIcon
-
-  // OAuth uchun to'liq sahifa yo'naltirish kerak (axios emas).
-  const go = (provider, url) => () => {
-    log.auth(`${provider} orqali kirish boshlandi`, url)
-    window.location.href = url
-  }
 
   return (
     <motion.div
       className="auth-card"
-      initial={{ opacity: 0, y: 12 }}
+      initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
+      transition={{ duration: 0.24, ease: [0.22, 1, 0.36, 1] }}
     >
-      <motion.div
-        className="auth-icon"
-        initial={{ scale: 0.7, opacity: 0 }}
-        animate={{ scale: 1, opacity: 1 }}
-        transition={{ ...spring, delay: 0.05 }}
-      >
-        <Icon size={32} />
-      </motion.div>
+      <span className="auth-mark" aria-hidden="true">
+        <Icon size={18} />
+      </span>
 
-      <h2>{title || t('auth.signInRequired')}</h2>
-      {text && <p>{text}</p>}
+      <h2 className="auth-title">{title || t('auth.signInRequired')}</h2>
+      {text && <p className="auth-text">{text}</p>}
 
       <motion.div
         className="auth-methods"
@@ -48,12 +37,13 @@ export default function AuthRequired({ icon = 'lock', title, text, note }) {
       >
         <motion.button
           type="button"
-          className="btn btn-google"
+          className="btn btn-secondary"
           variants={listItem}
           whileTap={tap}
-          onClick={go('Google', GOOGLE_LOGIN_URL)}
+          onClick={() => signIn('google')}
+          disabled={Boolean(busy)}
         >
-          <GoogleIcon size={20} />
+          {busy === 'google' ? <span className="spinner dark" /> : <GoogleIcon size={17} />}
           {t('auth.withGoogle')}
         </motion.button>
 
@@ -62,23 +52,21 @@ export default function AuthRequired({ icon = 'lock', title, text, note }) {
           className="btn btn-apple"
           variants={listItem}
           whileTap={tap}
-          onClick={go('Apple (iCloud)', APPLE_LOGIN_URL)}
+          onClick={() => signIn('apple')}
+          disabled={Boolean(busy)}
         >
-          <AppleIcon size={20} />
+          {busy === 'apple' ? <span className="spinner" /> : <AppleIcon size={17} />}
           {t('auth.withApple')}
         </motion.button>
 
         <motion.button
           type="button"
-          className="btn btn-secondary"
+          className="btn btn-ghost"
           variants={listItem}
           whileTap={tap}
-          onClick={() => {
-            log.auth('Telefon orqali kirish tanlandi')
-            navigate('/kirish')
-          }}
+          onClick={() => navigate('/kirish')}
         >
-          <PhoneIcon size={19} />
+          <PhoneIcon size={16} />
           {t('auth.withPhone')}
         </motion.button>
       </motion.div>

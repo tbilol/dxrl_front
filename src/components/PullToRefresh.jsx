@@ -1,21 +1,27 @@
 import { useRef, useState } from 'react'
 import { animate, motion, useMotionValue, useTransform } from 'framer-motion'
 import { RefreshIcon } from './Icons.jsx'
+import { scrollTop } from '../scroller.js'
 
 const THRESHOLD = 72
 const MAX_PULL = 100
 
 /**
  * Mobil ilovadagidek "tortib yangilash" hissi.
- * Sahifa tepasida turib pastga tortilsa — kontent egiladi va qo'yib yuborilganda
- * onRefresh() chaqiriladi.
+ * Sahifa tepasida turib pastga tortilsa — kontent egiladi va qo'yib
+ * yuborilganda onRefresh() chaqiriladi.
+ *
+ * Ko'rsatkich kontent ustida alohida qatlamda turadi va tortilganda kontent
+ * siljib uni ochadi. Ilgari ko'rsatkichning `height` xususiyati animatsiya
+ * qilinardi: har bir barmoq harakatida butun sahifa qaytadan joylashib,
+ * tortish sezilarli darajada sekinlashardi. Endi barcha harakat faqat
+ * `transform` va `opacity` orqali — kompozitor qatlamida.
  */
 export default function PullToRefresh({ onRefresh, children, disabled = false }) {
   const y = useMotionValue(0)
   const [busy, setBusy] = useState(false)
   const startRef = useRef(null)
 
-  const indicatorHeight = useTransform(y, (v) => Math.max(0, v))
   const rotate = useTransform(y, [0, MAX_PULL], [0, 320])
   const opacity = useTransform(y, [0, THRESHOLD * 0.5], [0, 1])
   const scale = useTransform(y, [0, THRESHOLD], [0.6, 1])
@@ -26,7 +32,7 @@ export default function PullToRefresh({ onRefresh, children, disabled = false })
   const onTouchStart = (e) => {
     if (disabled || busy) return
     // Faqat sahifa eng tepasida bo'lganda tortish hisobga olinadi.
-    if (window.scrollY > 2) return
+    if (scrollTop() > 2) return
     startRef.current = e.touches[0].clientY
   }
 
@@ -61,20 +67,18 @@ export default function PullToRefresh({ onRefresh, children, disabled = false })
 
   return (
     <div
+      className="ptr-host"
       onTouchStart={onTouchStart}
       onTouchMove={onTouchMove}
       onTouchEnd={onTouchEnd}
       onTouchCancel={onTouchEnd}
     >
-      <motion.div className="ptr" style={{ height: indicatorHeight, opacity }}>
-        <motion.span style={{ rotate: busy ? undefined : rotate, scale, display: 'grid' }}>
-          <motion.span
-            style={{ display: 'grid' }}
-            animate={busy ? { rotate: 360 } : { rotate: 0 }}
-            transition={busy ? { repeat: Infinity, duration: 0.8, ease: 'linear' } : { duration: 0 }}
-          >
+      <motion.div className="ptr" style={{ opacity }} aria-hidden="true">
+        <motion.span className="ptr-dial" style={{ rotate, scale }}>
+          {/* Yuklanish paytidagi aylanish — CSS animatsiyasi (transform). */}
+          <span className={`ptr-spin${busy ? ' is-busy' : ''}`}>
             <RefreshIcon size={22} />
-          </motion.span>
+          </span>
         </motion.span>
       </motion.div>
 

@@ -2,7 +2,9 @@ import React from 'react'
 import ReactDOM from 'react-dom/client'
 import { BrowserRouter } from 'react-router-dom'
 import App from './App.jsx'
+import { SettingsProvider } from './appSettings.jsx'
 import { consumeTokenFromUrl } from './auth.js'
+import { CurrentUserProvider } from './currentUser.jsx'
 import { LanguageProvider } from './i18n/index.jsx'
 import log from './logger.js'
 import { applyStoredTheme, ThemeProvider } from './theme.jsx'
@@ -15,9 +17,8 @@ log.front(
 if (!log.isDebug()) {
   // Debug o'chiq — bu yagona ko'rinadigan xabar, qolganlari jim.
   console.info(
-    "%c🌾 AGROGRAM — batafsil loglarni yoqish: localStorage.setItem('AGROGRAM_DEBUG','true') "
-      + 'yoki Sozlamalar -> Dasturchi rejimi',
-    'color: #A98B76; font-weight: bold;',
+    "%c🌾 AGROGRAM — batafsil loglarni yoqish: localStorage.setItem('AGROGRAM_DEBUG','true')",
+    'color: #2D7A3A; font-weight: bold;',
   )
 }
 
@@ -31,9 +32,13 @@ ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
     <ThemeProvider>
       <LanguageProvider>
-        <BrowserRouter>
-          <App />
-        </BrowserRouter>
+        <SettingsProvider>
+          <CurrentUserProvider>
+            <BrowserRouter>
+              <App />
+            </BrowserRouter>
+          </CurrentUserProvider>
+        </SettingsProvider>
       </LanguageProvider>
     </ThemeProvider>
   </React.StrictMode>,

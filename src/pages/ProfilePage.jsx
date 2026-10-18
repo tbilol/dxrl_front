@@ -1,37 +1,44 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import Avatar from '../components/Avatar.jsx'
 import FollowButton from '../components/FollowButton.jsx'
 import Header from '../components/Header.jsx'
 import ListingCard from '../components/ListingCard.jsx'
+import Rating from '../components/Rating.jsx'
+import { PremiumBadge, VerifiedBadge } from '../components/PlanBadges.jsx'
 import EmptyState from '../components/EmptyState.jsx'
 import AuthRequired from '../components/AuthRequired.jsx'
+import ConfirmDialog from '../components/ConfirmDialog.jsx'
 import PageShell from '../components/PageShell.jsx'
+import SearchBar from '../components/SearchBar.jsx'
 import Toast from '../components/Toast.jsx'
 import { ListingSkeleton } from '../components/Skeletons.jsx'
 import {
-  CartIcon,
-  GavelIcon,
+  ClipboardIcon,
+  CrownIcon,
+  HandshakeIcon,
   MessageIcon,
-  SendIcon,
+  SearchIcon,
   SettingsIcon,
+  ShieldCheckIcon,
+  StoreIcon,
 } from '../components/Icons.jsx'
 import {
-  deleteAuction,
+  deleteOffer,
   deleteRequest,
   errorMessage,
-  getAuctions,
+  getOffers,
   getProfile,
   getRequests,
   openConversation,
-} from '../api.js'
+} from '../services/index.js'
 import { useT } from '../i18n/index.jsx'
-import { listContainer, spring, tapSmall } from '../motion.js'
-import useCurrentUser from '../useCurrentUser.js'
-import useUnread from '../useUnread.js'
-import { ROLE_KEYS } from '../utils.js'
+import { listContainerFor, spring, tapSmall } from '../motion.js'
+import useCurrentUser from '../currentUser.jsx'
+import { filterListings, ROLE_KEYS } from '../utils.js'
 import log from '../logger.js'
+import useIncrementalList from '../useIncrementalList.js'
 import useLogMount from '../useLogMount.js'
 
 /**
@@ -45,17 +52,19 @@ export default function ProfilePage() {
   const navigate = useNavigate()
   const t = useT()
   const { user: me, loading: meLoading, error: meError } = useCurrentUser()
-  const { count: unread } = useUnread()
   const [searchParams, setSearchParams] = useSearchParams()
 
   const [other, setOther] = useState(null)
-  const [tab, setTab] = useState('auctions')
-  const [auctions, setAuctions] = useState(null)
+  const [tab, setTab] = useState('offers')
+  const [query, setQuery] = useState('')
+  const [offers, setOffers] = useState(null)
   const [requests, setRequests] = useState(null)
   const [followers, setFollowers] = useState(0)
   const [alert, setAlert] = useState('')
   const [toast, setToast] = useState('')
   const [opening, setOpening] = useState(false)
+  // O'chirishni tasdiqlash oynasi uchun kutilayotgan e'lon.
+  const [pendingDelete, setPendingDelete] = useState(null)
 
   // Google/Apple xatolik bilan qaytargan bo'lsa (?auth_error=...) — ko'rsatamiz.
   useEffect(() => {
@@ -90,14 +99,14 @@ export default function ProfilePage() {
     if (!profile?.id) return
     try {
       const [a, r] = await Promise.all([
-        getAuctions({ owner_id: profile.id }),
+        getOffers({ owner_id: profile.id }),
         getRequests({ owner_id: profile.id }),
       ])
-      setAuctions(a)
+      setOffers(a)
       setRequests(r)
     } catch (err) {
       setAlert(errorMessage(err, t))
-      setAuctions([])
+      setOffers([])
       setRequests([])
     }
   }, [profile?.id, t])
@@ -107,11 +116,11 @@ export default function ProfilePage() {
   }, [loadListings])
 
   const remove = async (item, kind) => {
-    if (!window.confirm(t('common.confirmDelete'))) return
+    setPendingDelete(null)
     try {
-      if (kind === 'auction') {
-        await deleteAuction(item.id)
-        setAuctions((prev) => prev.filter((x) => x.id !== item.id))
+      if (kind === 'offer') {
+        await deleteOffer(item.id)
+        setOffers((prev) => prev.filter((x) => x.id !== item.id))
       } else {
         await deleteRequest(item.id)
         setRequests((prev) => prev.filter((x) => x.id !== item.id))
@@ -137,6 +146,21 @@ export default function ProfilePage() {
   }
 
   const shownAlert = alert || (userId ? '' : meError)
+
+  /*
+   * Ro'yxat hisob-kitobi va hooklar erta return'lardan OLDIN turishi shart —
+   * aks holda ular ba'zi renderlarda chaqirilib, ba'zilarida chaqirilmay
+   * qolardi (React hook qoidasi buziladi).
+   */
+  const list = tab === 'offers' ? offers : requests
+  const kind = tab === 'offers' ? 'offer' : 'request'
+  const searching = query.trim().length > 0
+  // Qidiruv mijoz tomonida — ochiq tabdagi e'lonlar mahsulot nomi bo'yicha filtrlanadi.
+  const shown = useMemo(
+    () => (list === null ? null : filterListings(list, query, ['product'])),
+    [list, query],
+  )
+  const rendered = useIncrementalList(shown)
 
   /* ------------------------- Kirmagan holat (o'z profili) ------------------------ */
 
@@ -178,10 +202,8 @@ export default function ProfilePage() {
     )
   }
 
-  const list = tab === 'auctions' ? auctions : requests
-  const kind = tab === 'auctions' ? 'auction' : 'request'
   const postsCount =
-    auctions && requests ? auctions.length + requests.length : profile.total_listings_count ?? 0
+    offers && requests ? offers.length + requests.length : profile.total_listings_count ?? 0
 
   const stats = [
     { key: 'posts', value: postsCount, label: t('profile.posts') },
@@ -208,38 +230,15 @@ export default function ProfilePage() {
         backLabel={t('common.back')}
         actions={
           isOwn ? (
-            <>
-              {/* Instagram uslubidagi qog'oz samolyot — xabarlar shu yerda. */}
-              <motion.button
-                type="button"
-                className="header-btn"
-                whileTap={tapSmall}
-                onClick={() => navigate('/xabarlar')}
-                aria-label={`${t('profile.openMessages')}${unread > 0 ? ` (${unread})` : ''}`}
-              >
-                <SendIcon size={20} />
-                {unread > 0 && (
-                  <motion.span
-                    className="dot-badge"
-                    initial={{ scale: 0 }}
-                    animate={{ scale: 1 }}
-                    transition={spring}
-                  >
-                    {unread > 99 ? '99+' : unread}
-                  </motion.span>
-                )}
-              </motion.button>
-
-              <motion.button
-                type="button"
-                className="header-btn"
-                whileTap={tapSmall}
-                onClick={() => navigate('/sozlamalar')}
-                aria-label={t('settings.title')}
-              >
-                <SettingsIcon size={20} />
-              </motion.button>
-            </>
+            <motion.button
+              type="button"
+              className="topbar-btn"
+              whileTap={tapSmall}
+              onClick={() => navigate('/sozlamalar')}
+              aria-label={t('settings.title')}
+            >
+              <SettingsIcon size={17} />
+            </motion.button>
           ) : null
         }
       />
@@ -251,64 +250,65 @@ export default function ProfilePage() {
           {/* ---------------------------- Profil boshi ---------------------------- */}
           <div className="profile-aside">
             <motion.section
-              className="ig-profile"
-              initial={{ opacity: 0, y: 10 }}
+              className="profile-head"
+              initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.26, ease: [0.22, 1, 0.36, 1] }}
+              transition={{ duration: 0.24, ease: [0.22, 1, 0.36, 1] }}
             >
-              <div className="ig-top">
+              <div className="ph-id">
                 <motion.div
-                  initial={{ scale: 0.8, opacity: 0 }}
+                  initial={{ scale: 0.85, opacity: 0 }}
                   animate={{ scale: 1, opacity: 1 }}
                   transition={spring}
                 >
-                  <Avatar
-                    name={profile.name}
-                    src={profile.avatar_url}
-                    size={80}
-                    className="avatar-ring"
-                  />
+                  <Avatar name={profile.name} src={profile.avatar_url} size={56} />
                 </motion.div>
 
-                <div className="ig-stats">
-                  {stats.map((s) =>
-                    s.to ? (
-                      <motion.button
-                        key={s.key}
-                        type="button"
-                        className="ig-stat"
-                        whileTap={tapSmall}
-                        onClick={() => navigate(s.to)}
-                      >
-                        <span className="ig-stat-value num">{s.value}</span>
-                        <span className="ig-stat-label">{s.label}</span>
-                      </motion.button>
-                    ) : (
-                      <div key={s.key} className="ig-stat">
-                        <span className="ig-stat-value num">{s.value}</span>
-                        <span className="ig-stat-label">{s.label}</span>
-                      </div>
-                    ),
-                  )}
+                <div className="ph-who">
+                  <h2 className="ph-name">{profile.name}</h2>
+                  <span className="ph-marks">
+                    <span className={`badge${profile.role === 'dehqon' ? '' : ' badge-accent'}`}>
+                      {t(ROLE_KEYS[profile.role] || 'role.dehqon')}
+                    </span>
+                    {profile.is_premium && <PremiumBadge />}
+                    {profile.is_verified_farmer && <VerifiedBadge />}
+                  </span>
+                  <Rating value={profile.rating} count={profile.rating_count} size="lg" stars />
+                  {profile.address && <p className="ph-address">{profile.address}</p>}
                 </div>
               </div>
 
-              <div className="ig-bio">
-                <h2>{profile.name}</h2>
-                <span className={`badge${profile.role === 'dehqon' ? '' : ' badge-orange'}`}>
-                  {t(ROLE_KEYS[profile.role] || 'role.dehqon')}
-                </span>
-                {profile.address && <p className="ig-address">{profile.address}</p>}
+              {/* Ko'rsatkichlar — chegara bilan ajratilgan uchta katak. */}
+              <div className="ph-stats">
+                {stats.map((st) =>
+                  st.to ? (
+                    <motion.button
+                      key={st.key}
+                      type="button"
+                      className="ph-stat"
+                      whileTap={tapSmall}
+                      onClick={() => navigate(st.to)}
+                    >
+                      <span className="ph-stat-value num">{st.value}</span>
+                      <span className="ph-stat-label">{st.label}</span>
+                    </motion.button>
+                  ) : (
+                    <div key={st.key} className="ph-stat">
+                      <span className="ph-stat-value num">{st.value}</span>
+                      <span className="ph-stat-label">{st.label}</span>
+                    </div>
+                  ),
+                )}
               </div>
 
-              <div className="ig-actions">
+              <div className="ph-actions">
                 {isOwn ? (
                   <>
                     <motion.button
                       type="button"
-                      className="btn btn-ghost btn-sm"
+                      className="btn btn-secondary btn-sm"
                       whileTap={tapSmall}
-                      onClick={() => navigate('/sozlamalar')}
+                      onClick={() => navigate('/sozlamalar/profil')}
                     >
                       {t('profile.edit')}
                     </motion.button>
@@ -316,11 +316,10 @@ export default function ProfilePage() {
                       type="button"
                       className="btn btn-ghost btn-sm"
                       whileTap={tapSmall}
-                      onClick={() => navigate('/xabarlar')}
+                      onClick={() => navigate('/tranzaksiyalar')}
                     >
-                      <SendIcon size={15} />
-                      {t('profile.openMessages')}
-                      {unread > 0 && <span className="inline-badge">{unread}</span>}
+                      <HandshakeIcon size={14} />
+                      {t('tx.allTitle')}
                     </motion.button>
                   </>
                 ) : (
@@ -338,7 +337,7 @@ export default function ProfilePage() {
                       onClick={startChat}
                       disabled={opening}
                     >
-                      {opening ? <span className="spinner dark" /> : <MessageIcon size={15} />}
+                      {opening ? <span className="spinner dark" /> : <MessageIcon size={14} />}
                       {t('profile.message')}
                     </motion.button>
                   </>
@@ -349,45 +348,85 @@ export default function ProfilePage() {
             {isOwn && !profile.phone && (
               <div className="alert alert-warn">{t('profile.noPhone')}</div>
             )}
+
+            {/* Tarif va dehqon tasdig'i — profilning qisqa bo'limlari. */}
+            {isOwn && (
+              <div className="ph-links">
+                <motion.button
+                  type="button"
+                  className={`ph-link${profile.is_premium ? ' is-on' : ''}`}
+                  whileTap={tapSmall}
+                  onClick={() => navigate('/premium')}
+                >
+                  <CrownIcon size={16} />
+                  <span>
+                    <span className="ph-link-title">{t('plan.title')}</span>
+                    <span className="ph-link-text">
+                      {profile.is_premium ? t('plan.activeHint') : t('plan.upsell')}
+                    </span>
+                  </span>
+                </motion.button>
+
+                {!profile.is_verified_farmer && (
+                  <motion.button
+                    type="button"
+                    className="ph-link"
+                    whileTap={tapSmall}
+                    onClick={() => navigate('/tasdiqlash')}
+                  >
+                    <ShieldCheckIcon size={16} />
+                    <span>
+                      <span className="ph-link-title">{t('verify.title')}</span>
+                      <span className="ph-link-text">{t('verify.upsell')}</span>
+                    </span>
+                  </motion.button>
+                )}
+              </div>
+            )}
           </div>
 
           {/* ------------------------------ E'lonlar ------------------------------ */}
           <div>
-            <div className="segment ig-tabs" role="tablist">
+            <div className="tabs" role="tablist">
               {[
-                { id: 'auctions', label: t('profile.myAuctions'), Icon: GavelIcon },
-                { id: 'requests', label: t('profile.myRequests'), Icon: CartIcon },
+                { id: 'offers', label: t('profile.myOffers'), Icon: StoreIcon },
+                { id: 'requests', label: t('profile.myRequests'), Icon: ClipboardIcon },
               ].map((opt) => (
                 <button
                   key={opt.id}
                   type="button"
                   role="tab"
                   aria-selected={tab === opt.id}
-                  className={`segment-btn${tab === opt.id ? ' active' : ''}`}
+                  className={`tab${tab === opt.id ? ' active' : ''}`}
                   onClick={() => setTab(opt.id)}
                 >
                   {tab === opt.id && (
                     <motion.span
-                      layoutId="segment-ind"
-                      className="segment-ind"
+                      layoutId="profile-tab"
+                      className="tab-ind"
                       transition={spring}
                     />
                   )}
                   <span>
-                    <opt.Icon size={15} />
+                    <opt.Icon size={14} />
                     {opt.label}
                   </span>
                 </button>
               ))}
             </div>
 
+            <SearchBar value={query} onChange={setQuery} placeholder={t('search.profile')} />
+
+            {/* Tab almashuvi — faqat so'nish. Ilgari `y` ham surilardi, lekin
+                tablar balandligi har xil: kontent siljib, keyin qayta joylashib
+                sakrardi. Endi bir joyda tinch almashadi. */}
             <AnimatePresence mode="wait" initial={false}>
               <motion.div
                 key={tab}
-                initial={{ opacity: 0, y: 8 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -6 }}
-                transition={{ duration: 0.18 }}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.15, ease: 'linear' }}
               >
                 {list === null && (
                   <div className="card-grid">
@@ -395,9 +434,17 @@ export default function ProfilePage() {
                   </div>
                 )}
 
-                {list !== null && list.length === 0 && (
+                {shown !== null && shown.length === 0 && searching && (
                   <EmptyState
-                    icon={tab === 'auctions' ? GavelIcon : CartIcon}
+                    icon={SearchIcon}
+                    title={t('search.noResults')}
+                    text={t('search.noResultsHint')}
+                  />
+                )}
+
+                {list !== null && list.length === 0 && !searching && (
+                  <EmptyState
+                    icon={tab === 'offers' ? StoreIcon : ClipboardIcon}
                     title={t('profile.noListings')}
                     action={
                       isOwn ? (
@@ -406,24 +453,24 @@ export default function ProfilePage() {
                           className="btn btn-primary"
                           whileTap={tapSmall}
                           onClick={() =>
-                            navigate(tab === 'auctions' ? '/auksion/yangi' : '/sorovlar/yangi')
+                            navigate(tab === 'offers' ? '/takliflar/yangi' : '/sorovlar/yangi')
                           }
                         >
-                          {t(tab === 'auctions' ? 'auctions.new' : 'requests.new')}
+                          {t(tab === 'offers' ? 'offers.new' : 'requests.new')}
                         </motion.button>
                       ) : null
                     }
                   />
                 )}
 
-                {list !== null && list.length > 0 && (
+                {shown !== null && shown.length > 0 && (
                   <motion.div
                     className="card-grid"
-                    variants={listContainer}
+                    variants={listContainerFor(shown.length)}
                     initial="initial"
                     animate="animate"
                   >
-                    {list.map((item) => (
+                    {rendered.map((item) => (
                       <ListingCard
                         key={item.id}
                         item={item}
@@ -432,13 +479,13 @@ export default function ProfilePage() {
                           isOwn
                             ? (it) =>
                                 navigate(
-                                  kind === 'auction'
-                                    ? `/auksion/${it.id}/tahrir`
+                                  kind === 'offer'
+                                    ? `/takliflar/${it.id}/tahrir`
                                     : `/sorovlar/${it.id}/tahrir`,
                                 )
                             : undefined
                         }
-                        onDelete={isOwn ? (it) => remove(it, kind) : undefined}
+                        onDelete={isOwn ? (it) => setPendingDelete({ item: it, kind }) : undefined}
                       />
                     ))}
                   </motion.div>
@@ -448,6 +495,16 @@ export default function ProfilePage() {
           </div>
         </div>
       </main>
+
+      <ConfirmDialog
+        open={Boolean(pendingDelete)}
+        title={t('common.confirmDelete')}
+        text={pendingDelete?.item.product}
+        confirmLabel={t('common.delete')}
+        danger
+        onConfirm={() => remove(pendingDelete.item, pendingDelete.kind)}
+        onCancel={() => setPendingDelete(null)}
+      />
 
       <Toast message={toast} onDone={() => setToast('')} />
     </PageShell>

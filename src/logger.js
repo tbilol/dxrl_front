@@ -1,8 +1,10 @@
 /**
  * AGROGRAM — brauzer konsoli uchun ranglangan loglar.
  *
- * Yoqish:  localStorage.setItem('AGROGRAM_DEBUG', 'true')   (yoki Sozlamalar -> Dasturchi)
+ * Yoqish:  localStorage.setItem('AGROGRAM_DEBUG', 'true')   (brauzer konsolidan)
  * O'chirish: localStorage.removeItem('AGROGRAM_DEBUG')
+ *
+ * Bu faqat dasturchi uchun konsol kaliti — sozlamalarda tugmasi yo'q.
  *
  * Debug o'chiq bo'lsa faqat xatolar chiqadi — ilova ishlashi bir xil qoladi.
  * Loglar faqat konsolda (F12) ko'rinadi, interfeysga ta'sir qilmaydi.
@@ -80,28 +82,7 @@ log.group = (label, fn) => {
 
 log.isDebug = () => debugEnabled
 
-/** Sozlamalardagi "Dasturchi" tugmasi shuni chaqiradi. */
-log.setDebug = (on) => {
-  debugEnabled = Boolean(on)
-  try {
-    if (debugEnabled) localStorage.setItem(DEBUG_KEY, 'true')
-    else localStorage.removeItem(DEBUG_KEY)
-  } catch {
-    /* e'tiborsiz */
-  }
-  // Holat o'zgarganini har doim ko'rsatamiz — konsolda tasdiq bo'lsin.
-  console.log(
-    `%c🟢 [FRONT] ${time()} — Debug rejimi ${debugEnabled ? 'YOQILDI' : "O'CHIRILDI"}`,
-    `color: ${LOGS.FRONT.color}; font-weight: bold;`,
-  )
-  return debugEnabled
-}
-
-/** Boshqa tabda o'zgartirilsa ham holat bir xil bo'lsin. */
 if (typeof window !== 'undefined') {
-  window.addEventListener('storage', (e) => {
-    if (e.key === DEBUG_KEY) debugEnabled = readDebug()
-  })
   // Konsoldan qo'lda boshqarish uchun.
   window.AGROGRAM_LOG = log
 }
