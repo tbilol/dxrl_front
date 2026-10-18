@@ -13,8 +13,7 @@ src/services/mock/         ← hozirgi (soxta) amalga oshirish
   listings.js      takliflar va so'rovlar
   profiles.js      profil, avatar, obuna
   chat.js          suhbatlar va xabarlar
-  account.js       e-ijara tasdig'i, Premium, hosil kalkulyatori
-  transactions.js  eskrov oqimi (tranzaksiya)
+  account.js       hosil kalkulyatori (super kalkulyator)
 ```
 
 Har bir soxta funksiya `// MOCK:` izohi bilan belgilangan va qisqa kutishdan
@@ -39,21 +38,15 @@ ko'rinadi.
 | Telefon + parol (kirish / ro'yxat) | `mock/auth.js` · `phoneLogin`, `phoneRegister` | parol tekshirilmaydi, SMS yo'q | parol xeshi, sessiya, rate-limit |
 | Joriy profil | `mock/auth.js` · `getMe` | bazadan o'qiydi; sessiya yo'q bo'lsa 401 | `/auth/me` |
 | Akkauntni ulash (Google/Apple) | `SettingsSubPage` · `linkOAuth` | profil maydonini belgilaydi | haqiqiy bog'lash so'rovi |
-| E'lonlar (ro'yxat, tafsilot, CRUD) | `mock/listings.js` | 26 ta taklif + 20 ta so'rov namunasi, o'zgarishlar localStorage da | `/offers`, `/requests` |
+| E'lonlar (ro'yxat, tafsilot, CRUD) | `mock/listings.js` | 26 ta taklif + 20 ta so'rov namunasi, o'zgarishlar localStorage da. Doska faqat `status: 'active'` larni beradi; `owner_id` bilan so'ralsa — hammasi (yopilganlari ham) | `/offers`, `/requests` |
+| E'lonni yopish / qayta ochish | `mock/listings.js` · `updateOffer/updateRequest(id, { status })` | `'active'` ⇄ `'closed'` | xuddi shu PUT yoki alohida endpoint |
+| Faol e'lonlar kvotasi (10 / doska) | `mock/listings.js` · `assertQuota`, `countMyListings` | yaratishda va qayta faollashtirishda 10 ta faoldan oshsa — `409 { code: 'listing_limit', limit }` | aynan shu kvota (faqat faol, har doska alohida) |
 | E'lon rasmlari | `mock/listings.js` · `uploadListingImages` | fayl yuborilmaydi, rasm faqat sessiyada (`src/listings/images.js`) | fayl saqlash xizmati |
-| E'londagi qisqa video (Premium) | `ListingFormPage`, `mock/listings.js` | faqat `has_video` belgisi, fayl yuklanmaydi | video yuklash va transkodlash |
+| E'londagi qisqa video (hamma uchun) | `ListingFormPage`, `mock/listings.js` | faqat `has_video` belgisi, fayl yuklanmaydi | video yuklash va transkodlash |
 | Profil, avatar, obuna | `mock/profiles.js` | avatar `blob:` havola sifatida, obuna bazada | `/profiles`, fayl saqlash |
 | Suhbat va xabarlar | `mock/chat.js` | cheksiz xabar, ~2,2s dan keyin avtomatik javob | WebSocket / `/conversations` |
 | O'qilmagan xabarlar soni | `mock/chat.js` · `getUnreadCount` | bazadan sanaladi | server hisobi |
-| **E-ijara tasdig'i** | `mock/account.js` · `verifyFarmer` | ~1,1s kutish → har qanday raqam tasdiqlanadi | e-ijara xizmatiga so'rov |
-| **Premium sotib olish** | `mock/account.js` · `purchasePremium` | ~1,1s kutish → hisob premiumga o'tadi | to'lov tizimi + obuna holati |
 | **Hosil bashorati (super kalkulyator)** | `mock/account.js` · `estimateYield` | gektariga o'rtacha hosil × maydon, urug' me'yoriga tuzatish; me'yorlar `src/data/products.js` dan. Maydon interfeysda ga / sotix / m² da kiritiladi, chaqiruvdan oldin GEKTARGA o'giriladi (`components/calc/units.js`), urug' esa kilogrammga | agro-model (tuproq, sug'orish, ob-havo) |
-| **To'lov → eskrov** | `mock/transactions.js` · `advanceTransaction('pay')` | mablag' "ushlandi" deb belgilanadi | MCHJ eskrov hisobi, to'lov provayderi |
-| **Tarozi cheki** | `mock/transactions.js` · `submitWeighbridgeReceipt` | raqam yoki rasm nomi — doim tasdiqlanadi | tarozi tizimi bilan integratsiya |
-| **To'lovni chiqarish (payout)** | `mock/transactions.js` | avtomatik bosqich, bitim yopiladi | bank o'tkazmasi |
-| **Reyting va bonus** | `mock/transactions.js` · `complete()` | ikkala tomon reytingi qayta hisoblanadi, olib sotuvchiga summaning 0,5% bonusi | bonus mantig'i hali loyihalanmagan |
-| Ikkinchi tomon amali | `TransactionPage` · "Namoyish: bosqichni o'tkazish" | sinov tugmasi — bosqichni boshqa tomon nomidan o'tkazadi | haqiqiy foydalanuvchi amali |
-| Statistika ma'lumoti | `src/stats/mock.js`, `useStatsData.js` | 3800 ta namunaviy e'lon; foydalanuvchi e'lonlari ustiga qo'shiladi | filtrlangan statistika endpointlari |
 | Sozlamalar (bildirishnoma, maxfiylik) | `src/appSettings.jsx` | faqat shu qurilmada (localStorage) | profil sozlamalari |
 | Kalkulyator tarixi | `components/calc/history.js` | oxirgi 25 ta hisob localStorage da (`agrogram_calc_history`, `agrogram_yield_history`), serverga yuborilmaydi | kerak bo'lsa — profilga bog'langan tarix |
 | E'lon ko'rishlari, shikoyat | `ListingDetailPage` | ko'rishlar namunaviy, shikoyat faqat xabar | hisoblagich va shikoyat endpointi |
@@ -80,21 +73,18 @@ bo'lganda ro'yxat serverdan kelishi mumkin — u holda shu faylning o'rniga
 katalog endpointi qo'yiladi, iste'molchilar (`ProductSelect`, kalkulyator)
 o'zgarmaydi.
 
-## Tarif chegaralari
+## E'lon chegarasi
 
-`src/plans.js` — yagona manba. Interfeys shu qiymatlar bo'yicha cheklaydi
-(e'lon qo'shish tugmasi va forma). Bitta hisob ham dehqon, ham olib sotuvchi
-bo'lishi mumkin — ikkala chegara ham amal qiladi.
+`src/limits.js` — yagona manba: **har bir doskada 10 ta FAOL e'lon**
+(`LISTING_LIMIT`). Backend kvotasi bilan aynan bir xil — faqat
+`status === 'active'` e'lonlar sanaladi, takliflar va so'rovlar alohida.
+Foydalanuvchi eski e'lonini yopsa (yoki o'chirsa), o'rniga yangisini
+joylashtira oladi. Tariflar, Premium va rollar yo'q: ro'yxatdan o'tgan
+har kim ikkala doskaga ham yoza oladi — e'lon turini doska belgilaydi.
 
-| | Default ($0) | Premium ($9.99) |
-| --- | --- | --- |
-| Dehqon doskasidagi e'lonlar | 5 | 20 |
-| Olib sotuvchi doskasidagi e'lonlar | 5 | 25 |
-| To'liq statistika | ✓ | ✓ |
-| Cheksiz yozishma | ✓ | ✓ |
-| Maxsus nishon | — | ✓ |
-| Super kalkulyator (hosil bashorati) | — | ✓ |
-| E'londa qisqa video | — | ✓ |
+Interfeys chegarani uch joyda tekshiradi: doskadagi "+" tugmasi, forma
+sahifasi (`countMyListings`) va server javobi (`409 listing_limit` →
+`errorMessage` tarjima qiladi).
 
 ## Namunaviy ma'lumotni tozalash
 
