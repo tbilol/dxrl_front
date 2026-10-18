@@ -1,6 +1,5 @@
 import { motion } from 'framer-motion'
 import Avatar from './Avatar.jsx'
-import { PremiumBadge } from './PlanBadges.jsx'
 import { useLanguage } from '../i18n/index.jsx'
 import { listContainerFor, listItem } from '../motion.js'
 import useIncrementalList from '../useIncrementalList.js'
@@ -66,8 +65,6 @@ export default function ConversationList({
                 <div className="conv-body">
                   <div className={`conv-name${unread ? ' unread' : ''}`}>
                     <span className="conv-name-text">{conv.other_user.name}</span>
-                    {/* Premium foydalanuvchining nishoni — profildagi bilan bir xil. */}
-                    {conv.other_user.is_premium && <PremiumBadge compact />}
                   </div>
                   <div className={`conv-preview${unread ? ' unread' : ''}`}>
                     {previewOf(conv, t, mine)}

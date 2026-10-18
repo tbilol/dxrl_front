@@ -6,11 +6,15 @@
  */
 
 import db, { currentProfile, decorate, save } from './db.js'
+import { LISTING_LIMIT } from '../../limits.js'
 import { delay, NORMAL, nowIso, SHORT, trace, uid } from './util.js'
 
 function byKind(kind, params = {}) {
   let rows = db.listings.filter((l) => l.kind === kind)
   if (params.owner_id) rows = rows.filter((l) => l.owner_id === params.owner_id)
+  // Doskada faqat faol e'lonlar; egasining ro'yxatida (owner_id) — hammasi.
+  const status = params.status ?? (params.owner_id ? 'all' : 'active')
+  if (status !== 'all') rows = rows.filter((l) => (l.status ?? 'active') === status)
   if (params.product) {
     const q = String(params.product).toLowerCase()
     rows = rows.filter((l) => l.product.toLowerCase().includes(q))
@@ -32,8 +36,26 @@ function one(kind, id) {
   return decorate(found)
 }
 
+function activeOf(kind, userId) {
+  return db.listings.filter(
+    (l) => l.kind === kind && l.owner_id === userId && (l.status ?? 'active') === 'active',
+  ).length
+}
+
+/** MOCK: backend kvotasi — har bir doskada 10 ta faol e'lon (409 qaytaradi). */
+function assertQuota(kind, userId) {
+  if (activeOf(kind, userId) < LISTING_LIMIT) return
+  const err = new Error('Listing limit reached')
+  err.response = {
+    status: 409,
+    data: { code: 'listing_limit', limit: LISTING_LIMIT, detail: "Faol e'lonlar chegarasi tugadi" },
+  }
+  throw err
+}
+
 function create(kind, data) {
   const me = currentProfile()
+  if (me) assertQuota(kind, me.id)
   const listing = {
     ...data,
     id: uid(kind),
@@ -42,7 +64,7 @@ function create(kind, data) {
     status: 'active',
     owner_id: me?.id ?? null,
     views_count: 0,
-    has_video: Boolean(me?.is_premium && data.has_video),
+    has_video: Boolean(data.has_video),
   }
   db.listings.unshift(listing)
   save()
@@ -52,6 +74,8 @@ function create(kind, data) {
 function update(kind, id, data) {
   const found = db.listings.find((l) => l.kind === kind && String(l.id) === String(id))
   if (!found) return one(kind, id)
+  // Yopilgan e'lonni qayta faollashtirish ham kvotaga kiradi.
+  if (data.status === 'active' && found.status !== 'active') assertQuota(kind, found.owner_id)
   Object.assign(found, data, { updated_at: nowIso() })
   save()
   return decorate(found)
@@ -92,8 +116,10 @@ export function uploadListingImages(id, files) {
   return delay({ ok: true, uploaded: files?.length ?? 0 }, NORMAL)
 }
 
-/** Foydalanuvchining e'lonlari soni — tarif chegarasini tekshirish uchun. */
+/**
+ * MOCK: foydalanuvchining shu doskadagi FAOL e'lonlari soni — chegara
+ * (10 ta / doska) uchun. Backend kvotasi bilan bir xil: faqat 'active'.
+ */
 export function countMyListings(kind, userId) {
-  return db.listings.filter((l) => l.kind === kind && l.owner_id === userId).length
+  return delay(() => activeOf(kind, userId), SHORT)
 }
-

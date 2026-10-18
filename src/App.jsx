@@ -6,8 +6,8 @@ import RouteFallback from './components/RouteFallback.jsx'
 /*
  * Har bir sahifa alohida bo'lakda (React.lazy). Ikki foyda:
  *   · birinchi yuklashda faqat ochilgan sahifa kodi olinadi va tahlil qilinadi;
- *   · og'ir kutubxonalar (masalan, statistikadagi diagrammalar) boshqa
- *     sahifalarning asosiy oqimini band qilmaydi.
+ *   · og'ir sahifalar (chat, kalkulyator) boshqa sahifalarning asosiy
+ *     oqimini band qilmaydi.
  *
  * Bo'laklar navigatsiyani kutib turmasligi uchun ular birinchi chizishdan
  * keyin, brauzer bo'sh turganda oldindan yuklanadi (usePrefetchRoutes) —
@@ -18,18 +18,12 @@ const ListingFormPage = lazy(() => import('./pages/ListingFormPage.jsx'))
 const ListingDetailPage = lazy(() => import('./pages/ListingDetailPage.jsx'))
 const ConversationsPage = lazy(() => import('./pages/ConversationsPage.jsx'))
 const ChatPage = lazy(() => import('./pages/ChatPage.jsx'))
-const StatsPage = lazy(() => import('./pages/StatsPage.jsx'))
-const StatsDetailPage = lazy(() => import('./pages/StatsDetailPage.jsx'))
 const ProfilePage = lazy(() => import('./pages/ProfilePage.jsx'))
 const FollowListPage = lazy(() => import('./pages/FollowListPage.jsx'))
 const PhoneAuthPage = lazy(() => import('./pages/PhoneAuthPage.jsx'))
 const SettingsPage = lazy(() => import('./pages/SettingsPage.jsx'))
 const SettingsSubPage = lazy(() => import('./pages/SettingsSubPage.jsx'))
-const PremiumPage = lazy(() => import('./pages/PremiumPage.jsx'))
-const VerifyFarmerPage = lazy(() => import('./pages/VerifyFarmerPage.jsx'))
 const CalculatorPage = lazy(() => import('./pages/CalculatorPage.jsx'))
-const TransactionsPage = lazy(() => import('./pages/TransactionsPage.jsx'))
-const TransactionPage = lazy(() => import('./pages/TransactionPage.jsx'))
 
 /** Eng ko'p ishlatiladigan sahifalar birinchi bo'lib olinadi. */
 const PREFETCH = [
@@ -40,16 +34,10 @@ const PREFETCH = [
   () => import('./pages/ChatPage.jsx'),
   () => import('./pages/ListingFormPage.jsx'),
   () => import('./pages/SettingsPage.jsx'),
-  () => import('./pages/StatsPage.jsx'),
-  () => import('./pages/StatsDetailPage.jsx'),
   () => import('./pages/SettingsSubPage.jsx'),
   () => import('./pages/FollowListPage.jsx'),
   () => import('./pages/PhoneAuthPage.jsx'),
-  () => import('./pages/PremiumPage.jsx'),
-  () => import('./pages/VerifyFarmerPage.jsx'),
   () => import('./pages/CalculatorPage.jsx'),
-  () => import('./pages/TransactionsPage.jsx'),
-  () => import('./pages/TransactionPage.jsx'),
 ]
 
 /** Bo'laklarni birma-bir, faqat brauzer bo'sh turganda yuklaydi. */
@@ -121,19 +109,7 @@ export default function App() {
             element={<FollowListPage mode="following" />}
           />
 
-          {/* Statistika — tab EMAS: doskalar tepasidagi paneldan ochiladi. */}
-          <Route path="/statistika" element={<Navigate to="/statistika/dehqon" replace />} />
-          <Route path="/statistika/dehqon" element={<StatsPage scope="farmer" />} />
-          <Route path="/statistika/sotuvchi" element={<StatsPage scope="reseller" />} />
-          {/* Bo'limning to'liq ro'yxati (top-200) — alohida to'liq ekranli sahifa. */}
-          <Route path="/statistika/batafsil/:type" element={<StatsDetailPage />} />
-          {/* Bitim (eskrov) oqimi */}
-          <Route path="/tranzaksiyalar" element={<TransactionsPage />} />
-          <Route path="/tranzaksiya/:id" element={<TransactionPage />} />
-
-          {/* Tarif, dehqon tasdig'i va super kalkulyator */}
-          <Route path="/premium" element={<PremiumPage />} />
-          <Route path="/tasdiqlash" element={<VerifyFarmerPage />} />
+          {/* Super kalkulyator — hamma uchun bepul. */}
           <Route path="/kalkulyator" element={<CalculatorPage />} />
 
           <Route path="/kirish" element={<PhoneAuthPage />} />

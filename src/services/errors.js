@@ -12,6 +12,10 @@ export function errorMessage(err, t) {
   if (err?.response?.status === 401) {
     return t ? t('auth.sessionExpired') : 'Sessiya tugadi. Qaytadan kiring.'
   }
+  // Doska chegarasi (10 ta faol e'lon) — tarjima qilingan matn.
+  if (err?.response?.data?.code === 'listing_limit' && t) {
+    return t('limit.text', { limit: err.response.data.limit })
+  }
   if (typeof detail === 'string') return detail
   if (Array.isArray(detail) && detail.length) return detail.map((d) => d.msg).join(', ')
   if (err?.code === 'ERR_NETWORK') {

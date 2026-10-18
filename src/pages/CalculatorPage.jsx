@@ -1,46 +1,27 @@
 import { useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
-import { useNavigate } from 'react-router-dom'
-import AuthRequired from '../components/AuthRequired.jsx'
 import Header from '../components/Header.jsx'
 import PageShell from '../components/PageShell.jsx'
 import PlainCalculator from '../components/PlainCalculator.jsx'
 import YieldEstimator from '../components/calc/YieldEstimator.jsx'
-import { CalculatorIcon, CrownIcon, SproutIcon } from '../components/Icons.jsx'
+import { CalculatorIcon, SproutIcon } from '../components/Icons.jsx'
 import { useT } from '../i18n/index.jsx'
-import { spring, tap } from '../motion.js'
-import { hasFeature } from '../plans.js'
-import useCurrentUser from '../currentUser.jsx'
+import { spring } from '../motion.js'
 import useLogMount from '../useLogMount.js'
 
 /**
  * SUPER KALKULYATOR — ikki rejim:
- *   · hosil bashorati (faqat Premium) — ekin turi, maydon va urug' miqdori;
- *   · oddiy kalkulyator — kundalik arifmetika, hammaga ochiq.
+ *   · hosil bashorati — ekin turi, maydon va urug' miqdori;
+ *   · oddiy kalkulyator — kundalik arifmetika.
+ * Ikkalasi ham hamma uchun bepul (kirish ham shart emas).
  *
  * Ikkala rejim bir xil ko'rinishda: ekran + klaviatura (components/calc/).
  */
 export default function CalculatorPage() {
   useLogMount('CalculatorPage')
-  const navigate = useNavigate()
   const t = useT()
-  const { user, loading } = useCurrentUser()
 
   const [mode, setMode] = useState('yield') // 'yield' | 'plain'
-  const premium = hasFeature(user, 'calculator')
-
-  /* ---------------------------- Kirmagan holat ---------------------------- */
-
-  if (!loading && !user) {
-    return (
-      <PageShell variant="slide" width="form">
-        <Header title={t('calc.title')} backTo="/" backLabel={t('common.back')} />
-        <main className="page">
-          <AuthRequired text={t('calc.authHint')} />
-        </main>
-      </PageShell>
-    )
-  }
 
   return (
     <PageShell variant="slide" width="form">
@@ -85,27 +66,7 @@ export default function CalculatorPage() {
           >
             {mode === 'plain' && <PlainCalculator />}
 
-            {/* Hosil bashorati — Premium xususiyati. */}
-            {mode === 'yield' && !premium && (
-              <div className="form-card premium-gate">
-                <span className="verify-mark" aria-hidden="true">
-                  <CrownIcon size={22} />
-                </span>
-                <h2 className="verify-title">{t('calc.premiumTitle')}</h2>
-                <p className="verify-text">{t('calc.premiumText')}</p>
-                <motion.button
-                  type="button"
-                  className="btn btn-primary"
-                  whileTap={tap}
-                  onClick={() => navigate('/premium')}
-                >
-                  <CrownIcon size={17} />
-                  {t('plan.seePlans')}
-                </motion.button>
-              </div>
-            )}
-
-            {mode === 'yield' && premium && <YieldEstimator />}
+            {mode === 'yield' && <YieldEstimator />}
           </motion.div>
         </AnimatePresence>
       </main>

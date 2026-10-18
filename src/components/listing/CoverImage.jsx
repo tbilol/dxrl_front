@@ -1,5 +1,5 @@
 import { LeafIcon, PackageIcon } from '../Icons.jsx'
-import { forDark, productColor } from '../../stats/products.js'
+import { forDark, productColor } from '../../data/productColors.js'
 import { useTheme } from '../../theme.jsx'
 
 /**

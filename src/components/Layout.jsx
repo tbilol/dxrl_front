@@ -8,14 +8,10 @@ import log from '../logger.js'
 
 /**
  * To'liq ekranli ichki sahifalar — pastki menyu pastga siljib yashirinadi:
- * ochiq suhbat va statistikaning "Batafsil" sahifasi (ikkisi ham
- * `position: fixed` qoplama, o'ngdan suriladi).
+ * ochiq suhbat (`position: fixed` qoplama, o'ngdan suriladi).
  */
 function isFullscreen(pathname) {
-  return (
-    /^\/xabarlar\/[^/]+$/.test(pathname) ||
-    /^\/statistika\/batafsil\/[^/]+$/.test(pathname)
-  )
+  return /^\/xabarlar\/[^/]+$/.test(pathname)
 }
 
 /**

@@ -5,8 +5,6 @@ import Avatar from '../components/Avatar.jsx'
 import FollowButton from '../components/FollowButton.jsx'
 import Header from '../components/Header.jsx'
 import ListingCard from '../components/ListingCard.jsx'
-import Rating from '../components/Rating.jsx'
-import { PremiumBadge, VerifiedBadge } from '../components/PlanBadges.jsx'
 import EmptyState from '../components/EmptyState.jsx'
 import AuthRequired from '../components/AuthRequired.jsx'
 import ConfirmDialog from '../components/ConfirmDialog.jsx'
@@ -16,12 +14,9 @@ import Toast from '../components/Toast.jsx'
 import { ListingSkeleton } from '../components/Skeletons.jsx'
 import {
   ClipboardIcon,
-  CrownIcon,
-  HandshakeIcon,
   MessageIcon,
   SearchIcon,
   SettingsIcon,
-  ShieldCheckIcon,
   StoreIcon,
 } from '../components/Icons.jsx'
 import {
@@ -36,7 +31,7 @@ import {
 import { useT } from '../i18n/index.jsx'
 import { listContainerFor, spring, tapSmall } from '../motion.js'
 import useCurrentUser from '../currentUser.jsx'
-import { filterListings, ROLE_KEYS } from '../utils.js'
+import { filterListings } from '../utils.js'
 import log from '../logger.js'
 import useIncrementalList from '../useIncrementalList.js'
 import useLogMount from '../useLogMount.js'
@@ -225,7 +220,7 @@ export default function ProfilePage() {
     <PageShell width="wide" variant={userId ? 'slide' : 'fade'}>
       <Header
         title={isOwn ? t('profile.title') : profile.name}
-        subtitle={isOwn ? t('profile.subtitle') : t(ROLE_KEYS[profile.role] || 'role.dehqon')}
+        subtitle={isOwn ? t('profile.subtitle') : undefined}
         backTo={userId ? '/' : undefined}
         backLabel={t('common.back')}
         actions={
@@ -266,14 +261,6 @@ export default function ProfilePage() {
 
                 <div className="ph-who">
                   <h2 className="ph-name">{profile.name}</h2>
-                  <span className="ph-marks">
-                    <span className={`badge${profile.role === 'dehqon' ? '' : ' badge-accent'}`}>
-                      {t(ROLE_KEYS[profile.role] || 'role.dehqon')}
-                    </span>
-                    {profile.is_premium && <PremiumBadge />}
-                    {profile.is_verified_farmer && <VerifiedBadge />}
-                  </span>
-                  <Rating value={profile.rating} count={profile.rating_count} size="lg" stars />
                   {profile.address && <p className="ph-address">{profile.address}</p>}
                 </div>
               </div>
@@ -303,25 +290,14 @@ export default function ProfilePage() {
 
               <div className="ph-actions">
                 {isOwn ? (
-                  <>
-                    <motion.button
-                      type="button"
-                      className="btn btn-secondary btn-sm"
-                      whileTap={tapSmall}
-                      onClick={() => navigate('/sozlamalar/profil')}
-                    >
-                      {t('profile.edit')}
-                    </motion.button>
-                    <motion.button
-                      type="button"
-                      className="btn btn-ghost btn-sm"
-                      whileTap={tapSmall}
-                      onClick={() => navigate('/tranzaksiyalar')}
-                    >
-                      <HandshakeIcon size={14} />
-                      {t('tx.allTitle')}
-                    </motion.button>
-                  </>
+                  <motion.button
+                    type="button"
+                    className="btn btn-secondary btn-sm"
+                    whileTap={tapSmall}
+                    onClick={() => navigate('/sozlamalar/profil')}
+                  >
+                    {t('profile.edit')}
+                  </motion.button>
                 ) : (
                   <>
                     <FollowButton
@@ -349,40 +325,6 @@ export default function ProfilePage() {
               <div className="alert alert-warn">{t('profile.noPhone')}</div>
             )}
 
-            {/* Tarif va dehqon tasdig'i — profilning qisqa bo'limlari. */}
-            {isOwn && (
-              <div className="ph-links">
-                <motion.button
-                  type="button"
-                  className={`ph-link${profile.is_premium ? ' is-on' : ''}`}
-                  whileTap={tapSmall}
-                  onClick={() => navigate('/premium')}
-                >
-                  <CrownIcon size={16} />
-                  <span>
-                    <span className="ph-link-title">{t('plan.title')}</span>
-                    <span className="ph-link-text">
-                      {profile.is_premium ? t('plan.activeHint') : t('plan.upsell')}
-                    </span>
-                  </span>
-                </motion.button>
-
-                {!profile.is_verified_farmer && (
-                  <motion.button
-                    type="button"
-                    className="ph-link"
-                    whileTap={tapSmall}
-                    onClick={() => navigate('/tasdiqlash')}
-                  >
-                    <ShieldCheckIcon size={16} />
-                    <span>
-                      <span className="ph-link-title">{t('verify.title')}</span>
-                      <span className="ph-link-text">{t('verify.upsell')}</span>
-                    </span>
-                  </motion.button>
-                )}
-              </div>
-            )}
           </div>
 
           {/* ------------------------------ E'lonlar ------------------------------ */}

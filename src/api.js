@@ -117,19 +117,6 @@ export const createRequest = (data) => api.post('/api/requests', data).then((r) 
 export const updateRequest = (id, data) => api.put(`/api/requests/${id}`, data).then((r) => r.data)
 export const deleteRequest = (id) => api.delete(`/api/requests/${id}`).then((r) => r.data)
 
-/* ------------------------------ Statistika ------------------------------ */
-
-/** Backend yo'li o'zgarmadi (yuqoridagi OFFERS_PATH bilan bir xil manba). */
-export const getTopOffers = () => api.get('/api/stats/top-auctions').then((r) => r.data)
-export const getTopRequests = () => api.get('/api/stats/top-requests').then((r) => r.data)
-
-/** Backend maydonlari interfeys atamalariga o'giriladi. */
-export const getStatsSummary = () =>
-  api.get('/api/stats/summary').then((r) => ({
-    offers_count: r.data?.auctions_count ?? 0,
-    requests_count: r.data?.requests_count ?? 0,
-  }))
-
 /* -------------------------------- Profil -------------------------------- */
 
 export const getProfiles = () => api.get('/api/profiles').then((r) => r.data)

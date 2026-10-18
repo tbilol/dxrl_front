@@ -9,7 +9,7 @@ import AuthRequired from '../components/AuthRequired.jsx'
 import PageShell from '../components/PageShell.jsx'
 import { BlockSkeleton } from '../components/Skeletons.jsx'
 import EmptyState from '../components/EmptyState.jsx'
-import { CheckIcon, CrownIcon, ShieldCheckIcon, VideoIcon } from '../components/Icons.jsx'
+import { CheckIcon, PackageIcon, VideoIcon } from '../components/Icons.jsx'
 import {
   countMyListings,
   createOffer,
@@ -25,7 +25,7 @@ import { useLanguage } from '../i18n/index.jsx'
 import { findProduct, findProductByName } from '../data/products.js'
 import { moveImages, setImages } from '../listings/images.js'
 import { tap } from '../motion.js'
-import { canPostOffer, hasFeature, limitFor, reachedLimit } from '../plans.js'
+import { LISTING_LIMIT, reachedLimit } from '../limits.js'
 import useCurrentUser from '../currentUser.jsx'
 import {
   formatMoneyInput,
@@ -89,8 +89,12 @@ export default function ListingFormPage({ kind }) {
 
   const [form, setForm] = useState(EMPTY)
   const [photos, setPhotos] = useState([])
-  // MOCK: Premium tarifdagi qisqa video — hozircha faqat fayl nomi saqlanadi.
+  // MOCK: qisqa video (hamma uchun) — hozircha faqat fayl nomi saqlanadi.
   const [video, setVideo] = useState(null)
+  // Tahrirlanayotgan e'londa video avvaldan bormi (yangisi tanlanmasa saqlanadi).
+  const [hadVideo, setHadVideo] = useState(false)
+  // Shu doskadagi faol e'lonlar soni — faqat yangi e'lon uchun; null = yuklanmoqda.
+  const [activeCount, setActiveCount] = useState(null)
   const videoRef = useRef(null)
   const [errors, setErrors] = useState({})
   const [alert, setAlert] = useState('')
@@ -110,6 +114,7 @@ export default function ListingFormPage({ kind }) {
       .then((data) => {
         if (!active) return
         prefilledRef.current = true
+        setHadVideo(Boolean(data.has_video))
         const { region, district } = splitAddress(data.address)
         setForm({
           name: (isOffer ? data.farmer_name : data.buyer_name) || '',
@@ -130,6 +135,19 @@ export default function ListingFormPage({ kind }) {
       active = false
     }
   }, [id, isEdit, isOffer, t])
+
+  // Yangi e'lon — chegarani tekshirish uchun faol e'lonlar sonini olamiz.
+  useEffect(() => {
+    if (isEdit || !user) return undefined
+    let active = true
+    countMyListings(kind, user.id)
+      .then((n) => active && setActiveCount(n))
+      // Sanab bo'lmasa formani to'smaymiz — server baribir kvotani tekshiradi.
+      .catch(() => active && setActiveCount(0))
+    return () => {
+      active = false
+    }
+  }, [isEdit, kind, user])
 
   // Yaratish rejimi — profildan ism/telefon/manzilni avtomatik to'ldiramiz.
   useEffect(() => {
@@ -195,7 +213,7 @@ export default function ListingFormPage({ kind }) {
         .join(', ') || null
 
     const payload = {
-      // Bazaga kanonik (o'zbekcha) nom yoziladi — statistika ranglari va
+      // Bazaga kanonik (o'zbekcha) nom yoziladi — mahsulot ranglari va
       // qidiruv shu nom bo'yicha ishlaydi; `product_id` esa barqaror kalit.
       product: findProduct(form.product)?.uz ?? '',
       product_id: form.product,
@@ -206,7 +224,7 @@ export default function ListingFormPage({ kind }) {
       [isOffer ? 'farmer_name' : 'buyer_name']: form.name.trim(),
       [isOffer ? 'price' : 'offer_price']: moneyToNumber(form.price),
       // MOCK: video fayli yuklanmaydi — e'londa faqat belgi ko'rinadi.
-      has_video: Boolean(video),
+      has_video: Boolean(video) || hadVideo,
     }
 
     log.front('Forma yuborildi', { kind, isEdit, ...payload })
@@ -263,55 +281,25 @@ export default function ListingFormPage({ kind }) {
     )
   }
 
-  /*
-   * Ikki to'siq — faqat yangi e'lon uchun (tahrirlashda emas):
-   *   1. Dehqonlar doskasiga faqat e-ijara orqali tasdiqlangan dehqon yozadi;
-   *   2. Tarif chegarasi (Default 5/5, Premium 20/25).
-   */
-  if (!isEdit && user && isOffer && !canPostOffer(user)) {
+  /* Chegara — faqat yangi e'lon uchun (tahrirlashda emas):
+     har bir doskada 10 ta FAOL e'lon (backend kvotasi bilan bir xil). */
+  if (!isEdit && user && reachedLimit(activeCount ?? 0)) {
     return (
       <PageShell variant="slide" width="form">
         <Header title={title} backTo={listTo} backLabel={t('common.back')} />
         <main className="page">
           <EmptyState
-            icon={ShieldCheckIcon}
-            title={t('verify.neededTitle')}
-            text={t('verify.neededText')}
+            icon={PackageIcon}
+            title={t('limit.title')}
+            text={t('limit.text', { limit: LISTING_LIMIT })}
             action={
               <motion.button
                 type="button"
                 className="btn btn-primary"
                 whileTap={tap}
-                onClick={() => navigate('/tasdiqlash')}
+                onClick={() => navigate('/profil')}
               >
-                <ShieldCheckIcon size={17} />
-                {t('verify.submit')}
-              </motion.button>
-            }
-          />
-        </main>
-      </PageShell>
-    )
-  }
-
-  if (!isEdit && user && reachedLimit(user, kind, countMyListings(kind, user.id))) {
-    return (
-      <PageShell variant="slide" width="form">
-        <Header title={title} backTo={listTo} backLabel={t('common.back')} />
-        <main className="page">
-          <EmptyState
-            icon={CrownIcon}
-            title={t('plan.limitTitle')}
-            text={t('plan.limitText', { limit: limitFor(user, kind) })}
-            action={
-              <motion.button
-                type="button"
-                className="btn btn-primary"
-                whileTap={tap}
-                onClick={() => navigate('/premium')}
-              >
-                <CrownIcon size={17} />
-                {t('plan.seePlans')}
+                {t('limit.manage')}
               </motion.button>
             }
           />
@@ -470,28 +458,26 @@ export default function ListingFormPage({ kind }) {
           {/* 7. Rasmlar — ixtiyoriy */}
           <ImagePicker images={photos} onChange={setPhotos} />
 
-          {/* 8. Qisqa video — Premium xususiyati. */}
-          {hasFeature(user, 'video') && (
-            <div className="field">
-              <span className="field-label">{t('listing.video')}</span>
-              <input
-                ref={videoRef}
-                type="file"
-                accept="video/*"
-                hidden
-                onChange={(e) => setVideo(e.target.files?.[0] ?? null)}
-              />
-              <motion.button
-                type="button"
-                className="btn btn-ghost"
-                whileTap={tap}
-                onClick={() => videoRef.current?.click()}
-              >
-                <VideoIcon size={16} />
-                {video ? video.name : t('listing.videoPick')}
-              </motion.button>
-            </div>
-          )}
+          {/* 8. Qisqa video — hamma uchun bepul. */}
+          <div className="field">
+            <span className="field-label">{t('listing.video')}</span>
+            <input
+              ref={videoRef}
+              type="file"
+              accept="video/*"
+              hidden
+              onChange={(e) => setVideo(e.target.files?.[0] ?? null)}
+            />
+            <motion.button
+              type="button"
+              className="btn btn-ghost"
+              whileTap={tap}
+              onClick={() => videoRef.current?.click()}
+            >
+              <VideoIcon size={16} />
+              {video ? video.name : t(hadVideo ? 'listing.videoReplace' : 'listing.videoPick')}
+            </motion.button>
+          </div>
         </form>
       </main>
 

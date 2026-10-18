@@ -21,14 +21,12 @@ import * as mockAuth from './mock/auth.js'
 import * as mockChat from './mock/chat.js'
 import * as mockListings from './mock/listings.js'
 import * as mockProfiles from './mock/profiles.js'
-import * as mockTransactions from './mock/transactions.js'
 import { resetDb } from './mock/db.js'
 
 /** Backend paydo bo'lgach — `false`. */
 export const USE_MOCK = true
 
 export { errorMessage } from './errors.js'
-export { STEPS, STEP_KEYS } from './mock/transactions.js'
 
 /* ---------------------------- Autentifikatsiya --------------------------- */
 
@@ -80,20 +78,9 @@ export const getMessages = mockChat.getMessages
 export const sendMessage = mockChat.sendMessage
 export const getUnreadCount = mockChat.getUnreadCount
 
-/* ------------------------- Hisob: tasdiq, tarif -------------------------- */
+/* --------------------------- Super kalkulyator --------------------------- */
 
-export const verifyFarmer = mockAccount.verifyFarmer
-export const purchasePremium = mockAccount.purchasePremium
-export const cancelPremium = mockAccount.cancelPremium
 export const estimateYield = mockAccount.estimateYield
-
-/* ------------------------------ Tranzaksiya ------------------------------ */
-
-export const createTransaction = mockTransactions.createTransaction
-export const getTransactions = mockTransactions.getTransactions
-export const getTransaction = mockTransactions.getTransaction
-export const advanceTransaction = mockTransactions.advanceTransaction
-export const submitWeighbridgeReceipt = mockTransactions.submitWeighbridgeReceipt
 
 /* ------------------------------- Xizmatchi ------------------------------- */
 

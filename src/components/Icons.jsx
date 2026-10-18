@@ -37,14 +37,6 @@ export const ClipboardIcon = (p) => (
   </Svg>
 )
 
-/* Bozor ko'rsatkichlari — o'sish chizig'i. */
-export const TrendIcon = (p) => (
-  <Svg {...p}>
-    <path d="M3 17.5 9 11l4 4 7.5-7.5" />
-    <path d="M15 7.5h5.5V13" />
-  </Svg>
-)
-
 /* Bargli belgi — mahsulot yorlig'i uchun kichik ikonka. */
 export const SproutIcon = (p) => (
   <Svg {...p}>
@@ -60,14 +52,6 @@ export const CartIcon = (p) => (
     <circle cx="9" cy="21" r="1" />
     <circle cx="20" cy="21" r="1" />
     <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6" />
-  </Svg>
-)
-
-export const ChartIcon = (p) => (
-  <Svg {...p}>
-    <line x1="18" y1="20" x2="18" y2="10" />
-    <line x1="12" y1="20" x2="12" y2="4" />
-    <line x1="6" y1="20" x2="6" y2="14" />
   </Svg>
 )
 
@@ -259,14 +243,6 @@ export const ScaleIcon = (p) => (
     <path d="m3 12 2-5 2 5a2 2 0 0 1-4 0z" />
     <path d="m17 12 2-5 2 5a2 2 0 0 1-4 0z" />
     <path d="M7 21h10" />
-  </Svg>
-)
-
-export const CoinsIcon = (p) => (
-  <Svg {...p}>
-    <circle cx="9" cy="9" r="6" />
-    <path d="M15.5 4.2a6 6 0 0 1 0 15.6" />
-    <path d="M9 6v6l3 2" />
   </Svg>
 )
 
@@ -687,7 +663,7 @@ export const DownloadFileIcon = (p) => (
   </Svg>
 )
 
-/* ---------------- Tranzaksiya, tarif va kalkulyator ikonkalari ----------- */
+/* ---------------- Kalkulyator ikonkalari ---------------------------------- */
 
 /* Super kalkulyator. */
 export const CalculatorIcon = (p) => (
@@ -696,66 +672,6 @@ export const CalculatorIcon = (p) => (
     <path d="M8 7.5h8" />
     <path d="M8.5 12h.01M12 12h.01M15.5 12h.01" />
     <path d="M8.5 16h.01M12 16h.01M15.5 16h.01" />
-  </Svg>
-)
-
-/* Reyting yulduzi. `filled` — to'ldirilgan ko'rinish. */
-export const StarIcon = ({ filled = false, ...p }) => (
-  <Svg {...p} fill={filled ? 'currentColor' : 'none'}>
-    <path d="m12 3.6 2.6 5.3 5.9.85-4.25 4.15 1 5.85L12 16.99l-5.25 2.76 1-5.85L3.5 9.75l5.9-.85z" />
-  </Svg>
-)
-
-/* Premium nishoni — toj. */
-export const CrownIcon = (p) => (
-  <Svg {...p}>
-    <path d="M4 18h16" />
-    <path d="M4 18 3 7.5l4.5 3.5L12 5l4.5 6 4.5-3.5L20 18z" />
-  </Svg>
-)
-
-/* Tarozi cheki. */
-export const ReceiptIcon = (p) => (
-  <Svg {...p}>
-    <path d="M6 3.5h12v17l-2.4-1.6-2.4 1.6-2.4-1.6L8.4 20.5 6 18.9z" />
-    <path d="M9 8h6" />
-    <path d="M9 12h6" />
-  </Svg>
-)
-
-/* Eskrov hisobi — qulfli hamyon. */
-export const WalletIcon = (p) => (
-  <Svg {...p}>
-    <path d="M3.5 7.5A2 2 0 0 1 5.5 5.5H17a1 1 0 0 1 1 1v1.5" />
-    <rect x="3.5" y="7.5" width="17" height="11" rx="2" />
-    <path d="M16.5 13h.01" />
-  </Svg>
-)
-
-/* Yuk mashinasi — mahsulotni olib ketish bosqichi. */
-export const TruckIcon = (p) => (
-  <Svg {...p}>
-    <path d="M3.5 6.5h10v9h-10z" />
-    <path d="M13.5 10h3.4l2.6 2.8v2.7h-6z" />
-    <circle cx="7" cy="17.5" r="1.8" />
-    <circle cx="16.5" cy="17.5" r="1.8" />
-  </Svg>
-)
-
-/* Tasdiqlangan dehqon — qalqon ichida belgi. */
-export const ShieldCheckIcon = (p) => (
-  <Svg {...p}>
-    <path d="M12 3.2 19 6v5.5c0 4.2-2.9 7.4-7 9.3-4.1-1.9-7-5.1-7-9.3V6z" />
-    <path d="m9 12 2 2 4-4" />
-  </Svg>
-)
-
-/* Qo'l siqish — kelishuv (tranzaksiya) boshlash. */
-export const HandshakeIcon = (p) => (
-  <Svg {...p}>
-    <path d="m3 12 3.5-3.5 3 1 2.5-1.5 2.5 1.5 3-1L21 12" />
-    <path d="M6.5 12.5 10 16l1.5-1.5L13 16l3.5-3.5" />
-    <path d="M3 12v3.5M21 12v3.5" />
   </Svg>
 )
 

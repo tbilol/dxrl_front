@@ -59,7 +59,6 @@ export default function SettingsSubPage({ section }) {
   const [form, setForm] = useState({
     name: '',
     address: '',
-    role: 'dehqon',
     phone: '',
     password: '',
     confirm: '',
@@ -80,7 +79,6 @@ export default function SettingsSubPage({ section }) {
       ...prev,
       name: user.name || '',
       address: user.address || '',
-      role: user.role || 'dehqon',
       phone: user.phone ? formatPhoneInput(user.phone) : '',
     }))
   }, [user])
@@ -107,7 +105,6 @@ export default function SettingsSubPage({ section }) {
       const saved = await updateProfile(user.id, {
         name: form.name.trim(),
         address: form.address.trim() || null,
-        role: form.role,
       })
 
       /*
@@ -340,17 +337,6 @@ export default function SettingsSubPage({ section }) {
           value={form.address}
           onChange={set('address')}
           placeholder={t('form.addressPlaceholder')}
-        />
-
-        <FormInput
-          label={`${t('role.dehqon')} / ${t('role.sotib_oluvchi')}`}
-          name="role"
-          value={form.role}
-          onChange={set('role')}
-          options={[
-            { value: 'dehqon', label: t('role.dehqon') },
-            { value: 'sotib_oluvchi', label: t('role.sotib_oluvchi') },
-          ]}
         />
 
         {submitButton}

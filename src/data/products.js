@@ -11,8 +11,8 @@
  *   { id: 'behi', uz: 'Behi', ru: 'Айва' }
  *
  * `id` — barqaror kalit (o'zgartirilmaydi: e'lonlarda saqlanadi).
- * `uz` — bazaga yoziladigan kanonik nom (statistika ranglari shu nom bo'yicha,
- *        stats/products.js ga qarang).
+ * `uz` — bazaga yoziladigan kanonik nom (mahsulot ranglari shu nom bo'yicha,
+ *        data/productColors.js ga qarang).
  * `ru` — interfeysdagi ruscha yorliq.
  * `crop` — ixtiyoriy: hosil kalkulyatori uchun agronomik me'yorlar
  *        (gektariga o'rtacha hosil, tonna; gektariga urug'/ko'chat, kg).

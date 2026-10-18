@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { motion } from 'framer-motion'
 import { useLocation, useNavigate } from 'react-router-dom'
-import BoardStats from '../components/BoardStats.jsx'
 import ConfirmDialog from '../components/ConfirmDialog.jsx'
 import Header from '../components/Header.jsx'
 import ListingCard from '../components/ListingCard.jsx'
@@ -16,7 +15,7 @@ import { CalculatorIcon, ClipboardIcon, SearchIcon, StoreIcon } from '../compone
 import { errorMessage, getOffers, getRequests } from '../services/index.js'
 import { useT } from '../i18n/index.jsx'
 import { listContainerFor, tapSmall } from '../motion.js'
-import { limitFor, reachedLimit } from '../plans.js'
+import { countActive, LISTING_LIMIT, reachedLimit } from '../limits.js'
 import useCurrentUser from '../currentUser.jsx'
 import { filterListings } from '../utils.js'
 import log from '../logger.js'
@@ -44,8 +43,8 @@ export default function ListingListPage({ kind }) {
   const [items, setItems] = useState(null)
   const [query, setQuery] = useState('')
   const [alert, setAlert] = useState('')
-  // Yangi e'longa to'siq bo'lgan holat: 'verify' | 'limit' | null.
-  const [blocked, setBlocked] = useState(null)
+  // Faol e'lonlar chegarasi tugagan bo'lsa — ogohlantirish oynasi.
+  const [limitHit, setLimitHit] = useState(false)
   // Sahifa olib tashlangach kelgan javob holatni o'zgartirmasligi kerak.
   const activeRef = useRef(true)
 
@@ -82,25 +81,19 @@ export default function ListingListPage({ kind }) {
   const newTo = isOffer ? '/takliflar/yangi' : '/sorovlar/yangi'
   const newLabel = t(isOffer ? 'offers.new' : 'requests.new')
 
-  /* Foydalanuvchining shu doskadagi e'lonlari — tarif chegarasi uchun.
-     Qo'shimcha so'rov yo'q: sanoq ko'rinib turgan ro'yxatdan olinadi. */
-  const myCount = user && items ? items.filter((it) => it.owner_id === user.id).length : 0
+  /* Foydalanuvchining shu doskadagi FAOL e'lonlari — chegara uchun.
+     Qo'shimcha so'rov yo'q: doska faqat faol e'lonlarni ko'rsatadi.
+     Forma sahifasi ham serverdan qayta tekshiradi. */
+  const myCount = countActive(items, user?.id)
 
-  /**
-   * "Yangi e'lon" tugmasi bosilganda: avval kirish, keyin (dehqonlar
-   * doskasida) e-ijara tasdig'i, so'ng tarif chegarasi tekshiriladi.
-   */
+  /** "Yangi e'lon": avval kirish, so'ng doska chegarasi (10 ta faol). */
   const startNew = () => {
     if (!user) {
       navigate('/kirish')
       return
     }
-    if (isOffer && !user.is_verified_farmer) {
-      setBlocked('verify')
-      return
-    }
-    if (reachedLimit(user, kind, myCount)) {
-      setBlocked('limit')
+    if (reachedLimit(myCount)) {
+      setLimitHit(true)
       return
     }
     navigate(newTo)
@@ -112,32 +105,23 @@ export default function ListingListPage({ kind }) {
         title={t(isOffer ? 'offers.title' : 'requests.title')}
         subtitle={t(isOffer ? 'offers.subtitle' : 'requests.subtitle')}
         actions={
-          /* Super kalkulyator — faqat dehqonlar doskasida (Premium xususiyati). */
-          isOffer ? (
-            <motion.button
-              type="button"
-              className="topbar-btn"
-              whileTap={tapSmall}
-              onClick={() => navigate('/kalkulyator')}
-              aria-label={t('calc.title')}
-              title={t('calc.title')}
-            >
-              <CalculatorIcon size={18} />
-            </motion.button>
-          ) : null
+          /* Super kalkulyator — hamma uchun bepul, ikkala doskada ham. */
+          <motion.button
+            type="button"
+            className="topbar-btn"
+            whileTap={tapSmall}
+            onClick={() => navigate('/kalkulyator')}
+            aria-label={t('calc.title')}
+            title={t('calc.title')}
+          >
+            <CalculatorIcon size={18} />
+          </motion.button>
         }
       />
 
       <PullToRefresh onRefresh={load}>
         <main className="page">
           {alert && <div className="alert">{alert}</div>}
-
-          {/* Statistika paneli — bosilganda shu doskaning statistikasi ochiladi. */}
-          <BoardStats
-            items={items}
-            kind={kind}
-            to={isOffer ? '/statistika/dehqon' : '/statistika/sotuvchi'}
-          />
 
           <SearchBar
             value={query}
@@ -197,30 +181,17 @@ export default function ListingListPage({ kind }) {
           <Fab> o'zini <body> ga portal qiladi (izohi Fab.jsx da). */}
       <Fab onClick={startNew} label={newLabel} />
 
-      {/* E-ijara tasdig'i talab qilinadi (faqat dehqonlar doskasi). */}
+      {/* Faol e'lonlar chegarasi tugadi — eskisini yopish taklif qilinadi. */}
       <ConfirmDialog
-        open={blocked === 'verify'}
-        title={t('verify.neededTitle')}
-        text={t('verify.neededText')}
-        confirmLabel={t('verify.submit')}
+        open={limitHit}
+        title={t('limit.title')}
+        text={t('limit.text', { limit: LISTING_LIMIT })}
+        confirmLabel={t('limit.manage')}
         onConfirm={() => {
-          setBlocked(null)
-          navigate('/tasdiqlash')
+          setLimitHit(false)
+          navigate('/profil')
         }}
-        onCancel={() => setBlocked(null)}
-      />
-
-      {/* Tarif chegarasi tugadi — Premium taklif qilinadi. */}
-      <ConfirmDialog
-        open={blocked === 'limit'}
-        title={t('plan.limitTitle')}
-        text={t('plan.limitText', { limit: limitFor(user, kind) })}
-        confirmLabel={t('plan.seePlans')}
-        onConfirm={() => {
-          setBlocked(null)
-          navigate('/premium')
-        }}
-        onCancel={() => setBlocked(null)}
+        onCancel={() => setLimitHit(false)}
       />
 
       <Toast message={toast} onDone={() => setToast('')} />

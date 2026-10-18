@@ -2,7 +2,6 @@ import {
   ClipboardIcon,
   MessageIcon,
   StoreIcon,
-  TrendIcon,
   UserIcon,
 } from './components/Icons.jsx'
 
@@ -10,8 +9,7 @@ import {
  * Menyu manbai. Yon menyu guruhlangan ro'yxatni ko'rsatadi (desktop),
  * pastki menyu esa TO'RTTA asosiy bo'limni tekis ro'yxat sifatida oladi.
  *
- * Statistika va kalkulyator tab EMAS: ular doskalar ichidan ochiladi
- * (doska tepasidagi statistika paneli va kalkulyator ikonkasi).
+ * Kalkulyator tab EMAS: u doskalar tepasidagi ikonkadan ochiladi.
  */
 export const NAV_GROUPS = [
   {
@@ -29,12 +27,6 @@ export const NAV_GROUPS = [
     ],
   },
 ]
-
-/** Desktopdagi yon menyuda statistika ham alohida havola sifatida turadi. */
-export const SIDEBAR_EXTRA = {
-  key: 'nav.groupStats',
-  items: [{ to: '/statistika/dehqon', icon: TrendIcon, key: 'nav.stats' }],
-}
 
 /** Pastki tab menyu — faqat to'rtta bo'lim. */
 const NAV_ITEMS = [

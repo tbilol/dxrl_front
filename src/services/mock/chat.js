@@ -40,8 +40,6 @@ function toListItem(conv) {
           name: other.name,
           avatar_url: other.avatar_url,
           role: other.role,
-          rating: other.rating,
-          is_premium: other.is_premium,
         }
       : { id: otherId, name: '—', avatar_url: null },
     last_message: last?.content ?? null,

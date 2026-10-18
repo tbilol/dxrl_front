@@ -2,8 +2,6 @@ import { motion } from 'framer-motion'
 import { useNavigate } from 'react-router-dom'
 import Avatar from './Avatar.jsx'
 import CoverImage from './listing/CoverImage.jsx'
-import Rating from './Rating.jsx'
-import { PremiumBadge } from './PlanBadges.jsx'
 import { EditIcon, MapPinIcon, PhoneIcon, ScaleIcon, TrashIcon, UserIcon, VideoIcon } from './Icons.jsx'
 import { localizeProduct } from '../data/products.js'
 import { useLanguage } from '../i18n/index.jsx'
@@ -34,6 +32,8 @@ export default function ListingCard({ item, kind, onEdit, onDelete }) {
   const price = isOffer ? item.price : item.offer_price
   const to = isOffer ? `/takliflar/${item.id}` : `/sorovlar/${item.id}`
   const showActions = Boolean(onEdit || onDelete)
+  // Yopilgan e'lon faqat egasining profilida ko'rinadi (doskada emas).
+  const isClosed = item.status === 'closed'
 
   /* `layout` ataylab ishlatilmaydi: to'rdagi kartalar joyini almashtirmaydi,
      lekin layout-proyeksiya `listItem` variantidagi `y` bilan bir xususiyat
@@ -41,7 +41,7 @@ export default function ListingCard({ item, kind, onEdit, onDelete }) {
   return (
     <motion.article
       variants={listItem}
-      className="lcard"
+      className={`lcard${isClosed ? ' is-closed' : ''}`}
       whileHover={cardHover}
       whileTap={cardTap}
     >
@@ -61,8 +61,12 @@ export default function ListingCard({ item, kind, onEdit, onDelete }) {
             Balandligi ikkalasida bir xil — to'r buzilmaydi. */}
         <div className="lcard-media">
           <CoverImage src={cover?.url} product={item.product} className="is-card" />
-          {isNew && <span className="new-badge lcard-new">{t('listing.new')}</span>}
-          {/* MOCK: Premium e'lonlardagi qisqa video (fayl hali yuklanmaydi). */}
+          {isClosed ? (
+            <span className="new-badge lcard-new is-closed">{t('listing.statusClosed')}</span>
+          ) : (
+            isNew && <span className="new-badge lcard-new">{t('listing.new')}</span>
+          )}
+          {/* MOCK: e'londagi qisqa video (fayl hali yuklanmaydi). */}
           {item.has_video && (
             <span className="lcard-video" title={t('listing.video')}>
               <VideoIcon size={13} />
@@ -118,8 +122,6 @@ export default function ListingCard({ item, kind, onEdit, onDelete }) {
           >
             <Avatar name={item.owner.name} src={item.owner.avatar_url} size={18} />
             <span>{item.owner.name}</span>
-            {item.owner.is_premium && <PremiumBadge compact />}
-            <Rating value={item.owner.rating} />
           </button>
         ) : (
           <span className="lcard-owner">

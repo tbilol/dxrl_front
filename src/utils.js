@@ -148,11 +148,6 @@ export function regionLabel(region, lang) {
   return lang === 'ru' ? region.ru : region.uz
 }
 
-export const ROLE_KEYS = {
-  dehqon: 'role.dehqon',
-  sotib_oluvchi: 'role.sotib_oluvchi',
-}
-
 /**
  * Qidiruv uchun matnni normallashtiradi: registr va o'zbekcha apostrof
  * variantlari ( ' ʻ ʼ ‘ ’ ) bir xil ko'rinishga keltiriladi.

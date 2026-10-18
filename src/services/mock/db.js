@@ -3,8 +3,7 @@
  *
  * Backend hali yo'q (u keyinchalik mikroservislar ko'rinishida yoziladi),
  * shuning uchun barcha ma'lumot shu yerda yashaydi va localStorage ga
- * saqlanadi — sahifa yangilansa ham e'lonlar, suhbatlar va tranzaksiyalar
- * joyida qoladi.
+ * saqlanadi — sahifa yangilansa ham e'lonlar va suhbatlar joyida qoladi.
  *
  * Bu yagona holat manbai: `src/services/` ichidagi hamma funksiya faqat shu
  * fayl bilan gaplashadi. Haqiqiy API ulanganda butun `mock/` papkasi
@@ -17,7 +16,7 @@ import log from '../../logger.js'
 import { isoDaysAgo, nowIso, pick, rng, round1, uid } from './util.js'
 
 const STORAGE_KEY = 'agrogram_mock_db'
-const VERSION = 2
+const VERSION = 3
 
 /* --------------------------- Namuna ma'lumotlar -------------------------- */
 
@@ -134,12 +133,6 @@ function makeProfiles() {
       email: null,
       avatar_url: null,
       address: `${region}, ${district}`,
-      // MOCK: reyting backendda tranzaksiyalardan hisoblanadi.
-      rating: round1(3.8 + rand() * 1.2),
-      rating_count: 4 + Math.floor(rand() * 40),
-      deals_count: 2 + Math.floor(rand() * 25),
-      is_premium: rand() > 0.7,
-      is_verified_farmer: true,
       has_password: true,
       has_google: false,
       has_apple: false,
@@ -158,11 +151,6 @@ function makeProfiles() {
       email: null,
       avatar_url: null,
       address: `${region}, ${district}`,
-      rating: round1(3.9 + rand() * 1.1),
-      rating_count: 6 + Math.floor(rand() * 50),
-      deals_count: 5 + Math.floor(rand() * 40),
-      is_premium: rand() > 0.6,
-      is_verified_farmer: false,
       has_password: true,
       has_google: false,
       has_apple: false,
@@ -202,8 +190,8 @@ function makeListings(profiles) {
         owner_id: person.id,
         [kind === 'offer' ? 'farmer_name' : 'buyer_name']: person.name,
         views_count: 20 + Math.floor(rand() * 900),
-        // MOCK: premium e'lonlarda qisqa video (hozircha faqat belgi).
-        has_video: person.is_premium && rand() > 0.5,
+        // MOCK: qisqa video (hozircha faqat belgi).
+        has_video: rand() > 0.75,
       })
     }
   }
@@ -223,7 +211,6 @@ function seed() {
     conversations: [],
     messages: [],
     follows: [], // { follower_id, following_id }
-    transactions: [],
   }
 }
 
@@ -280,9 +267,6 @@ export function decorate(listing) {
           name: owner.name,
           avatar_url: owner.avatar_url,
           role: owner.role,
-          rating: owner.rating,
-          is_premium: owner.is_premium,
-          is_verified_farmer: owner.is_verified_farmer,
         }
       : null,
   }
@@ -301,6 +285,8 @@ export function publicProfile(profile) {
     total_listings_count: listings.length,
     offers_count: listings.filter((l) => l.kind === 'offer').length,
     requests_count: listings.filter((l) => l.kind === 'request').length,
+    active_offers_count: listings.filter((l) => l.kind === 'offer' && l.status === 'active').length,
+    active_requests_count: listings.filter((l) => l.kind === 'request' && l.status === 'active').length,
   }
 }
 
@@ -309,18 +295,10 @@ export function createUser({ name, phone, email, provider }) {
   const profile = {
     id: uid('user'),
     name: name || 'Foydalanuvchi',
-    role: 'dehqon',
     phone: phone || null,
     email: email || null,
     avatar_url: null,
     address: null,
-    // MOCK: yangi hisob reytingi 5.0 dan boshlanadi (hali bitimi yo'q).
-    rating: 5,
-    rating_count: 0,
-    deals_count: 0,
-    bonus_points: 0,
-    is_premium: false,
-    is_verified_farmer: false,
     has_password: provider === 'phone',
     has_google: provider === 'google',
     has_apple: provider === 'apple',

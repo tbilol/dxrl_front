@@ -4,7 +4,6 @@ import Avatar from './Avatar.jsx'
 import AttachMenu from './chat/AttachMenu.jsx'
 import CallOverlay from './chat/CallOverlay.jsx'
 import MessageBubble from './chat/MessageBubble.jsx'
-import { PremiumBadge } from './PlanBadges.jsx'
 import TypingDots from './chat/TypingDots.jsx'
 import VoiceRecorder from './chat/VoiceRecorder.jsx'
 import { ArrowLeftIcon, PhoneCallIcon, SendIcon, VideoIcon, XIcon } from './Icons.jsx'
@@ -342,8 +341,6 @@ export default function ChatPanel({ conversationId, other, onBack }) {
           <span className="chat-peer-text">
             <span className="name">
               <span className="chat-peer-name-text">{other?.name || t('messages.title')}</span>
-              {/* Premium foydalanuvchining nishoni — profildagi bilan bir xil. */}
-              {other?.is_premium && <PremiumBadge compact />}
             </span>
             {presenceText && (
               <span className={`chat-peer-status${presence.online ? ' is-online' : ''}`}>

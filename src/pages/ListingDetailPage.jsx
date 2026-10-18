@@ -10,13 +10,11 @@ import Toast from '../components/Toast.jsx'
 import ImageCarousel from '../components/listing/ImageCarousel.jsx'
 import ImageGallery from '../components/listing/ImageGallery.jsx'
 import ListingCard from '../components/ListingCard.jsx'
-import Rating from '../components/Rating.jsx'
-import { PremiumBadge, VerifiedBadge } from '../components/PlanBadges.jsx'
 import { BlockSkeleton } from '../components/Skeletons.jsx'
 import {
   AlertIcon,
   CalendarIcon,
-  HandshakeIcon,
+  EditIcon,
   HeartIcon,
   MapPinIcon,
   MessageIcon,
@@ -26,13 +24,14 @@ import {
   TagIcon,
 } from '../components/Icons.jsx'
 import {
-  createTransaction,
   errorMessage,
   getOffer,
   getOffers,
   getRequest,
   getRequests,
   openConversation,
+  updateOffer,
+  updateRequest,
 } from '../services/index.js'
 import { localizeProduct } from '../data/products.js'
 import { useLanguage } from '../i18n/index.jsx'
@@ -41,7 +40,7 @@ import { isFavorite, toggleFavorite, useFavorites } from '../listings/favorites.
 import { tapSmall } from '../motion.js'
 import useCurrentUser from '../currentUser.jsx'
 import useMediaQuery from '../useMediaQuery.js'
-import { formatDate, formatNumber, parseDate, ROLE_KEYS } from '../utils.js'
+import { formatDate, formatNumber, parseDate } from '../utils.js'
 import log from '../logger.js'
 import useLogMount from '../useLogMount.js'
 
@@ -73,7 +72,8 @@ export default function ListingDetailPage({ kind }) {
   const [similar, setSimilar] = useState([])
   const [alert, setAlert] = useState('')
   const [opening, setOpening] = useState(false)
-  const [starting, setStarting] = useState(false)
+  const [phoneShown, setPhoneShown] = useState(false)
+  const [toggling, setToggling] = useState(false)
   const [toast, setToast] = useState('')
   const [reporting, setReporting] = useState(false)
 
@@ -125,9 +125,13 @@ export default function ListingDetailPage({ kind }) {
   const price = item ? (isOffer ? item.price : item.offer_price) : null
   const ownerName = item ? (isOffer ? item.farmer_name : item.buyer_name) : ''
   const isMine = Boolean(user && item?.owner_id && user.id === item.owner_id)
-  const canMessage = Boolean(user && item?.owner_id && !isMine)
+  const isActive = (item?.status ?? 'active') === 'active'
 
   const startChat = async () => {
+    if (!user) {
+      navigate('/kirish')
+      return
+    }
     setOpening(true)
     try {
       const conv = await openConversation(item.owner_id)
@@ -141,18 +145,22 @@ export default function ListingDetailPage({ kind }) {
   }
 
   /**
-   * Bitim (tranzaksiya) boshlash — ikki tomon kelishgandan keyin.
-   * MOCK: eskrov oqimi services/mock/transactions.js da.
+   * E'lonni yopish / qayta faollashtirish — faqat egasi uchun.
+   * Chegara faqat faol e'lonlarni sanaydi, shuning uchun yopilgan e'lon
+   * o'rniga yangisini joylashtirish mumkin.
    */
-  const startDeal = async () => {
-    setStarting(true)
+  const toggleStatus = async () => {
+    setToggling(true)
     try {
-      const tx = await createTransaction({ listing_id: item.id })
-      log.front('Tranzaksiya boshlandi (MOCK)', { id: tx.id })
-      navigate(`/tranzaksiya/${tx.id}`)
+      const next = isActive ? 'closed' : 'active'
+      const updated = await (isOffer ? updateOffer : updateRequest)(item.id, { status: next })
+      setItem(updated)
+      setToast(t(next === 'closed' ? 'listing.closedToast' : 'listing.reopenedToast'))
+      log.front("E'lon holati o'zgardi", { id: item.id, status: next })
     } catch (err) {
       setAlert(errorMessage(err, t))
-      setStarting(false)
+    } finally {
+      setToggling(false)
     }
   }
 
@@ -207,40 +215,63 @@ export default function ListingDetailPage({ kind }) {
 
   /* Aloqa tugmalari bitta marta tayyorlanadi: mobilda pastda qotgan
      panelda, 768px dan kengda esa sotuvchi kartasi ichida ko'rsatiladi. */
-  const contactButtons = (
+  const phoneHref = item.phone ? `tel:${String(item.phone).replace(/\s/g, '')}` : undefined
+
+  /* Egasi uchun: tahrirlash va yopish. Boshqalar uchun: chat va telefon —
+     ikki tomon to'g'ridan-to'g'ri bog'lanadi. */
+  const contactButtons = isMine ? (
+    <>
+      <motion.button
+        type="button"
+        className="btn btn-secondary"
+        whileTap={tapSmall}
+        onClick={() => navigate(isOffer ? `/takliflar/${item.id}/tahrir` : `/sorovlar/${item.id}/tahrir`)}
+      >
+        <EditIcon size={16} />
+        {t('common.edit')}
+      </motion.button>
+      <motion.button
+        type="button"
+        className={`btn ${isActive ? 'btn-ghost' : 'btn-primary'}`}
+        whileTap={tapSmall}
+        onClick={toggleStatus}
+        disabled={toggling}
+      >
+        {toggling && <span className={`spinner${isActive ? ' dark' : ''}`} />}
+        {t(isActive ? 'listing.close' : 'listing.reopen')}
+      </motion.button>
+    </>
+  ) : (
     <>
       <motion.button
         type="button"
         className="btn btn-fire"
         whileTap={tapSmall}
         onClick={startChat}
-        disabled={!canMessage || opening}
+        disabled={!item.owner_id || opening}
       >
         {opening ? <span className="spinner" /> : <MessageIcon size={16} />}
         {t('listing.sendMessage')}
       </motion.button>
 
-      <motion.a
-        className="btn btn-secondary"
-        whileTap={tapSmall}
-        href={item.phone ? `tel:${String(item.phone).replace(/\s/g, '')}` : undefined}
-        aria-disabled={!item.phone}
-      >
-        <PhoneCallIcon size={16} />
-        {t('listing.call')}
-      </motion.a>
-
-      {/* Kelishuvdan keyin: eskrov orqali bitim. */}
-      <motion.button
-        type="button"
-        className="btn btn-ghost"
-        whileTap={tapSmall}
-        onClick={startDeal}
-        disabled={!canMessage || starting}
-      >
-        {starting ? <span className="spinner dark" /> : <HandshakeIcon size={16} />}
-        {t('tx.start')}
-      </motion.button>
+      {/* Raqam birinchi bosishda ochiladi, ikkinchisida qo'ng'iroq qilinadi. */}
+      {phoneShown && phoneHref ? (
+        <motion.a className="btn btn-secondary" whileTap={tapSmall} href={phoneHref}>
+          <PhoneCallIcon size={16} />
+          <span className="num">{item.phone}</span>
+        </motion.a>
+      ) : (
+        <motion.button
+          type="button"
+          className="btn btn-secondary"
+          whileTap={tapSmall}
+          onClick={() => setPhoneShown(true)}
+          disabled={!item.phone}
+        >
+          <PhoneCallIcon size={16} />
+          {t('listing.showPhone')}
+        </motion.button>
+      )}
     </>
   )
 
@@ -356,7 +387,9 @@ export default function ListingDetailPage({ kind }) {
                   <div key={row.key} className="pd-row">
                     <span className="pd-row-key">{row.label}</span>
                     {row.badge ? (
-                      <span className="badge badge-success">{t('listing.statusActive')}</span>
+                      <span className={`badge${isActive ? ' badge-success' : ''}`}>
+                        {t(isActive ? 'listing.statusActive' : 'listing.statusClosed')}
+                      </span>
                     ) : (
                       <span className="pd-row-value num">{row.value}</span>
                     )}
@@ -382,16 +415,8 @@ export default function ListingDetailPage({ kind }) {
                 >
                   <Avatar name={item.owner?.name || ownerName} src={item.owner?.avatar_url} size={46} />
                   <span className="pd-seller-body">
-                    <span className="pd-seller-name">
-                      {item.owner?.name || ownerName}
-                      {item.owner?.is_premium && <PremiumBadge compact />}
-                      {item.owner?.is_verified_farmer && isOffer && <VerifiedBadge compact />}
-                    </span>
-                    <Rating value={item.owner?.rating} size="lg" stars />
-                    <span className="pd-seller-meta">
-                      {item.owner?.role ? t(ROLE_KEYS[item.owner.role] || 'role.dehqon') : ''}
-                      {item.address ? ` · ${item.address}` : ''}
-                    </span>
+                    <span className="pd-seller-name">{item.owner?.name || ownerName}</span>
+                    {item.address && <span className="pd-seller-meta">{item.address}</span>}
                     {created && (
                       <span className="pd-seller-meta">
                         {t('listing.listedOn', { date: formatDate(item.created_at, lang) })}

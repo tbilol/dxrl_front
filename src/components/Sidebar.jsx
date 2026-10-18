@@ -4,7 +4,7 @@ import { NavLink } from 'react-router-dom'
 import { LeafIcon, SettingsIcon } from './Icons.jsx'
 import { useT } from '../i18n/index.jsx'
 import { spring } from '../motion.js'
-import { NAV_GROUPS, SIDEBAR_EXTRA } from '../navItems.js'
+import { NAV_GROUPS } from '../navItems.js'
 
 /**
  * Desktop (>= 1024px) uchun chapdagi yon menyu.
@@ -32,7 +32,7 @@ function Sidebar() {
       </NavLink>
 
       <nav className="sb-nav" aria-label={t('app.name')}>
-        {[...NAV_GROUPS, SIDEBAR_EXTRA].map((group) => (
+        {NAV_GROUPS.map((group) => (
           <div className="sb-group" key={group.key}>
             <span className="sb-group-label">{t(group.key)}</span>
 

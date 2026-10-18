@@ -12,7 +12,6 @@ import { BlockSkeleton } from '../components/Skeletons.jsx'
 import {
   BellIcon,
   CheckIcon,
-  CrownIcon,
   DatabaseIcon,
   DownloadIcon,
   FileTextIcon,
@@ -28,7 +27,6 @@ import {
   PaletteIcon,
   PhoneIcon,
   PulseIcon,
-  ShieldCheckIcon,
   ShieldIcon,
   StoreIcon,
   SunIcon,
@@ -362,24 +360,6 @@ export default function SettingsPage() {
                     Number(Boolean(user.has_apple)),
                 })}
                 onClick={go('/sozlamalar/akkauntlar')}
-                chevron
-              />
-            </SettingsSection>
-
-            {/* ----------------------------- Tarif ----------------------------- */}
-            <SettingsSection icon={CrownIcon} title={t('plan.title')} hint={t('plan.settingsHint')}>
-              <SettingsRow
-                icon={CrownIcon}
-                label={user.is_premium ? t('plan.premium') : t('plan.default')}
-                description={user.is_premium ? t('plan.activeHint') : t('plan.upsell')}
-                onClick={go('/premium')}
-                chevron
-              />
-              <SettingsRow
-                icon={ShieldCheckIcon}
-                label={t('verify.title')}
-                description={user.is_verified_farmer ? t('verify.badge') : t('verify.upsell')}
-                onClick={go('/tasdiqlash')}
                 chevron
               />
             </SettingsSection>

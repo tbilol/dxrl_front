@@ -1,58 +1,9 @@
 /**
- * MOCK: hisob bilan bog'liq amallar — e-ijara tasdig'i, Premium tarif va
- * super kalkulyator hisob-kitobi.
+ * MOCK: super kalkulyator hisob-kitobi (hamma uchun bepul).
  */
 
 import { findProduct } from '../../data/products.js'
-import { PLANS } from '../../plans.js'
-import { currentProfile, publicProfile, save } from './db.js'
-import { delay, LONG, NORMAL, nowIso, trace } from './util.js'
-
-/* ---------------------- E-ijara (dehqon tasdig'i) ------------------------ */
-
-/**
- * MOCK: yer ijarasi shartnoma raqamini tekshirish.
- * Haqiqiy tizimda bu e-ijara xizmatiga so'rov bo'ladi; hozircha raqam
- * kiritilsa — hisob "tasdiqlangan dehqon" bo'ladi.
- */
-export function verifyFarmer(contractNumber) {
-  trace('verifyFarmer', { contractNumber })
-  return delay(() => {
-    const me = currentProfile()
-    me.is_verified_farmer = true
-    me.lease_contract = String(contractNumber ?? '').trim()
-    me.verified_at = nowIso()
-    save()
-    return { verified: true, profile: publicProfile(me) }
-  }, LONG)
-}
-
-/* ------------------------------- Premium --------------------------------- */
-
-/**
- * MOCK: Premium sotib olish. To'lov tizimi ulanmagan — spinner, so'ng
- * muvaffaqiyat va hisob premiumga o'tadi.
- */
-export function purchasePremium(planId = 'premium') {
-  trace('purchasePremium', { planId })
-  return delay(() => {
-    const me = currentProfile()
-    me.is_premium = planId === 'premium'
-    me.premium_since = nowIso()
-    save()
-    return { ok: true, plan: PLANS[planId] ?? PLANS.premium, profile: publicProfile(me) }
-  }, LONG)
-}
-
-/** MOCK: Premiumni bekor qilish (sinov uchun). */
-export function cancelPremium() {
-  return delay(() => {
-    const me = currentProfile()
-    me.is_premium = false
-    save()
-    return { ok: true, profile: publicProfile(me) }
-  }, NORMAL)
-}
+import { delay, NORMAL, trace } from './util.js'
 
 /* --------------------------- Super kalkulyator --------------------------- */
 
