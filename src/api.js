@@ -77,14 +77,36 @@ export const linkPhonePassword = (data) =>
 export const unlinkPhonePassword = () =>
   api.delete('/api/auth/phone/link').then((r) => r.data)
 
-/* ------------------------------ Auksionlar ------------------------------ */
+/* -------------------------------- Takliflar ------------------------------ */
 
-export const getAuctions = (params) =>
-  api.get('/api/auctions', { params }).then((r) => r.data)
-export const getAuction = (id) => api.get(`/api/auctions/${id}`).then((r) => r.data)
-export const createAuction = (data) => api.post('/api/auctions', data).then((r) => r.data)
-export const updateAuction = (id, data) => api.put(`/api/auctions/${id}`, data).then((r) => r.data)
-export const deleteAuction = (id) => api.delete(`/api/auctions/${id}`).then((r) => r.data)
+/*
+ * Backend yo'llari o'zgarmadi — ular shu yerda bir joyga yig'ilgan.
+ * Interfeys bo'yicha bu ma'lumot "taklif" (offer) deb ataladi.
+ */
+const OFFERS_PATH = '/api/auctions'
+
+export const getOffers = (params) => api.get(OFFERS_PATH, { params }).then((r) => r.data)
+export const getOffer = (id) => api.get(`${OFFERS_PATH}/${id}`).then((r) => r.data)
+export const createOffer = (data) => api.post(OFFERS_PATH, data).then((r) => r.data)
+export const updateOffer = (id, data) => api.put(`${OFFERS_PATH}/${id}`, data).then((r) => r.data)
+export const deleteOffer = (id) => api.delete(`${OFFERS_PATH}/${id}`).then((r) => r.data)
+
+/**
+ * E'lon rasmlarini yuklash.
+ *
+ * TODO: Upload listing images to backend — serverda hozircha bunday
+ * endpoint yo'q (`auctions` jadvalida rasm maydoni ham yo'q). U paydo
+ * bo'lishi bilan bu funksiya o'zgarishsiz ishlay boshlaydi.
+ */
+export const uploadListingImages = (id, files) => {
+  const body = new FormData()
+  files.forEach((file) => body.append('images', file))
+  return api
+    .post(`${OFFERS_PATH}/${id}/images`, body, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    })
+    .then((r) => r.data)
+}
 
 /* ------------------------------- So'rovlar ------------------------------ */
 
@@ -97,9 +119,16 @@ export const deleteRequest = (id) => api.delete(`/api/requests/${id}`).then((r) 
 
 /* ------------------------------ Statistika ------------------------------ */
 
-export const getTopAuctions = () => api.get('/api/stats/top-auctions').then((r) => r.data)
+/** Backend yo'li o'zgarmadi (yuqoridagi OFFERS_PATH bilan bir xil manba). */
+export const getTopOffers = () => api.get('/api/stats/top-auctions').then((r) => r.data)
 export const getTopRequests = () => api.get('/api/stats/top-requests').then((r) => r.data)
-export const getStatsSummary = () => api.get('/api/stats/summary').then((r) => r.data)
+
+/** Backend maydonlari interfeys atamalariga o'giriladi. */
+export const getStatsSummary = () =>
+  api.get('/api/stats/summary').then((r) => ({
+    offers_count: r.data?.auctions_count ?? 0,
+    requests_count: r.data?.requests_count ?? 0,
+  }))
 
 /* -------------------------------- Profil -------------------------------- */
 
@@ -108,6 +137,25 @@ export const getProfile = (id) => api.get(`/api/profiles/${id}`).then((r) => r.d
 export const createProfile = (data) => api.post('/api/profiles', data).then((r) => r.data)
 export const updateProfile = (id, data) => api.put(`/api/profiles/${id}`, data).then((r) => r.data)
 export const deleteProfile = (id) => api.delete(`/api/profiles/${id}`).then((r) => r.data)
+
+/**
+ * Profil rasmini yuklash.
+ *
+ * TODO: Upload profile image to backend — hozircha serverda bunday endpoint
+ * yo'q. `profiles.avatar_url` faqat Google/Apple orqali to'ladi va
+ * `ProfileUpdate` sxemasi uni qabul qilmaydi. Server tomonida
+ * `POST /api/profiles/{id}/avatar` (multipart, `avatar` maydoni) paydo
+ * bo'lishi bilan bu funksiya o'zgarishsiz ishlay boshlaydi.
+ */
+export const uploadAvatar = (id, file) => {
+  const body = new FormData()
+  body.append('avatar', file)
+  return api
+    .post(`/api/profiles/${id}/avatar`, body, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    })
+    .then((r) => r.data)
+}
 
 /* --------------------------------- Obuna -------------------------------- */
 
