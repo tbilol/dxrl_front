@@ -38,7 +38,7 @@ ko'rinadi.
 | Telefon + parol (kirish / ro'yxat) | `mock/auth.js` · `phoneLogin`, `phoneRegister` | parol tekshirilmaydi, SMS yo'q | parol xeshi, sessiya, rate-limit |
 | Joriy profil | `mock/auth.js` · `getMe` | bazadan o'qiydi; sessiya yo'q bo'lsa 401 | `/auth/me` |
 | Akkauntni ulash (Google/Apple) | `SettingsSubPage` · `linkOAuth` | profil maydonini belgilaydi | haqiqiy bog'lash so'rovi |
-| E'lonlar (ro'yxat, tafsilot, CRUD) | `mock/listings.js` | 26 ta taklif + 20 ta so'rov namunasi, o'zgarishlar localStorage da. Doska faqat `status: 'active'` larni beradi; `owner_id` bilan so'ralsa — hammasi (yopilganlari ham) | `/offers`, `/requests` |
+| E'lonlar (ro'yxat, tafsilot, CRUD) | `mock/listings.js` | 26 ta taklif + 20 ta so'rov namunasi, o'zgarishlar localStorage da. Doska faqat `status: 'active'` larni beradi; egasi o'z `owner_id` si bilan so'rasa — hammasi (yopilganlari ham), boshqalarning profilida — faqat faollari | `/offers`, `/requests` |
 | E'lonni yopish / qayta ochish | `mock/listings.js` · `updateOffer/updateRequest(id, { status })` | `'active'` ⇄ `'closed'` | xuddi shu PUT yoki alohida endpoint |
 | Faol e'lonlar kvotasi (10 / doska) | `mock/listings.js` · `assertQuota`, `countMyListings` | yaratishda va qayta faollashtirishda 10 ta faoldan oshsa — `409 { code: 'listing_limit', limit }` | aynan shu kvota (faqat faol, har doska alohida) |
 | E'lon rasmlari | `mock/listings.js` · `uploadListingImages` | fayl yuborilmaydi, rasm faqat sessiyada (`src/listings/images.js`) | fayl saqlash xizmati |
