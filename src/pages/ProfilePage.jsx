@@ -265,8 +265,11 @@ export default function ProfilePage() {
     )
   }
 
+  // Faqat faol e'lonlar sanaladi — yopilganlari profil hisobiga kirmaydi.
   const postsCount =
-    offers && requests ? offers.length + requests.length : profile.total_listings_count ?? 0
+    offers && requests
+      ? countActive(offers, profile.id) + countActive(requests, profile.id)
+      : (profile.active_offers_count ?? 0) + (profile.active_requests_count ?? 0)
 
   const stats = [
     { key: 'posts', value: postsCount, label: t('profile.posts') },

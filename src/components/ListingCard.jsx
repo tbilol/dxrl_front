@@ -6,7 +6,6 @@ import {
   EditIcon,
   HeartIcon,
   MapPinIcon,
-  PhoneIcon,
   ScaleIcon,
   TrashIcon,
   UserIcon,
@@ -132,13 +131,6 @@ export default function ListingCard({ item, kind, onEdit, onToggleStatus, onDele
             <MapPinIcon size={13} />
             <span>{item.address || t('common.notSet')}</span>
           </p>
-
-          {item.phone && (
-            <p className="lcard-line is-muted">
-              <PhoneIcon size={13} />
-              <span className="num">{item.phone}</span>
-            </p>
-          )}
         </div>
       </div>
 

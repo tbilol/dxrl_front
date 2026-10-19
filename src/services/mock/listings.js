@@ -12,8 +12,10 @@ import { delay, NORMAL, nowIso, SHORT, trace, uid } from './util.js'
 function byKind(kind, params = {}) {
   let rows = db.listings.filter((l) => l.kind === kind)
   if (params.owner_id) rows = rows.filter((l) => l.owner_id === params.owner_id)
-  // Doskada faqat faol e'lonlar; egasining ro'yxatida (owner_id) — hammasi.
-  const status = params.status ?? (params.owner_id ? 'all' : 'active')
+  // Doskada va boshqalarning profilida faqat faol e'lonlar; egasi o'z
+  // ro'yxatida hammasini (yopilganlarini ham) ko'radi — backenddagi kabi.
+  const own = params.owner_id && params.owner_id === db.currentUserId
+  const status = params.status ?? (own ? 'all' : 'active')
   if (status !== 'all') rows = rows.filter((l) => (l.status ?? 'active') === status)
   if (params.product) {
     const q = String(params.product).toLowerCase()
